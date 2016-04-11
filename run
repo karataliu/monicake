@@ -1,4 +1,20 @@
-#!/bin/sh
+#!/usr/bin/env perl
 
-date > /tmp/1
-echo done!
+use strict;
+use warnings;
+use feature qw(say);
+
+sub info
+{
+    my $msg = shift;
+    say "[MONICAKE] $msg";
+}
+
+info("Begin install Zabbix Agent.");
+my $ret = system('apt-get install zabbix-agent');
+
+if (!$ret){
+    info("Install succeed.");
+}else{
+    info("Install failed.");
+}
