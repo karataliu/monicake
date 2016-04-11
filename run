@@ -4,17 +4,38 @@ use strict;
 use warnings;
 use feature qw(say);
 
+my $command = shift;
+
 sub info
 {
     my $msg = shift;
     say "[MONICAKE] $msg";
 }
 
-info("Begin install Zabbix Agent.");
-my $ret = system('DEBIAN_FRONTEND=noninteractive apt-get -y install zabbix-agent');
+sub installPackage
+{
+    my $packageLine = join(" ", @_);
+    my $cmd         = "DEBIAN_FRONTEND=noninteractive apt-get -y install $packageLine";
+    my $ret;
 
-if (!$ret){
-    info("Install succeed.");
-}else{
-    info("Install failed.");
+    info "Begin install following packages:$packageLine";
+
+    $ret = system($cmd);
+    if (!$ret){
+        info("Install succeed.");
+    }else{
+        info("Install failed.");
+    }
 }
+
+if ($command eq "agent"){
+    info("Begin install Zabbix Agent.");
+    installPackage("zabbix-agent");
+}elsif ($command eq "server"){
+    info("Begin install Zabbix Server.");
+} else {
+    say "$0 <agent|server>";
+}
+
+
+
