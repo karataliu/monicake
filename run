@@ -11,7 +11,7 @@ sub info
 }
 
 info("Begin install Zabbix Agent.");
-my $ret = system('apt-get install zabbix-agent');
+my $ret = system('DEBIAN_FRONTEND=noninteractive apt-get -y install zabbix-agent');
 
 if (!$ret){
     info("Install succeed.");
