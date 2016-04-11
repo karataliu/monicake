@@ -1,4 +1,4 @@
 #!/bin/sh
 
-echo "ok" > /tmp/1
+date > /tmp/1
 echo done!
