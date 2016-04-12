@@ -26,11 +26,18 @@ sub info
 sub runCmd
 {
     my $cmd = shift;
-    if($optDryrun){ 
-        say $cmd;
-        return 0 ; 
+    info "Run command:";
+
+    say $cmd if $optVerbose || $optDryrun;
+    return 0 if $optDryrun;
+
+    if (!$optVerbose) { $cmd += ">/dev/null"; }
+    my $ret = system($cmd);
+    if ($ret){
+        info "Return code is $ret";
     }
-    system($cmd);
+
+    return $ret;
 }
 
 sub installPackage
@@ -39,7 +46,7 @@ sub installPackage
     my $cmd         = "DEBIAN_FRONTEND=noninteractive apt-get -y install $packageLine";
     my $ret;
 
-    info "Begin install following packages:$packageLine";
+    info "Begin install packages:$packageLine";
 
     $ret = runCmd($cmd);
     if (!$ret){
@@ -108,7 +115,6 @@ if ($optType eq "agent"){
     runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -uroot -pp1 zabbix");
     runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -uroot -pp1 zabbix");
     runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -uroot -pp1 zabbix");
-
     my $b=$confServerPhp;
     $b=~s/\$/\\\$/g;
     runCmd("cat >/etc/zabbix/zabbix.conf.php <<EOF\n$b\nEOF");
