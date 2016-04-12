@@ -17,7 +17,7 @@ $Getopt::Std::STANDARD_HELP_VERSION = 1;
 our $VERSION    = 0.1;
 my %opts;
 exit(1) if !getopts('vnq', \%opts);
-my $optVerbose  = $opts{'v'} ? 3 : ($opts{'q'} ? 1 : 2 );
+my $optVerbose  = $opts{'v'} ? 1 : ($opts{'q'} ? 3 : 2 );
 my $optDryrun   = $opts{'n'};
 my $optType     = shift || "help";
 
@@ -36,7 +36,7 @@ sub info
 sub runCmd
 {
     my $cmd = shift;
-    if ($optVerbose <= LOGINFO && $cmd !~ />/) { $cmd .= " >/dev/null"; }
+    if ($optVerbose > LOGINFO && $cmd !~ />/) { $cmd .= " >/dev/null"; }
 
     info "Run command:\n$cmd", LOGDEBUG;
     return 0 if $optDryrun;
@@ -131,7 +131,9 @@ if ($optType eq "agent"){
     runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
     runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
     runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
-    runCmd("cat >/etc/zabbix/zabbix.conf.php <<EOF\n$confServerPhp\nEOF");
+    $b = $confServerPhp;
+    $b =~ s/\$/\\\$/g;
+    runCmd("cat >/etc/zabbix/zabbix.conf.php <<EOF\n$b\nEOF");
     runCmd("cat >/etc/zabbix/zabbix_server.conf <<EOF\n$confServer\nEOF");
     runCmd("cat >/etc/default/zabbix-server <<EOF\n$confDefault\nEOF");
 
