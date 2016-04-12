@@ -15,8 +15,8 @@ sub info
 sub run()
 {
     my $cmd = shift;
-    info "Executing:$cmd"
-    system($cmd);
+    info "Executing:$cmd";
+    #system($cmd);
 }
 
 sub installPackage
