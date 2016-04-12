@@ -1,37 +1,46 @@
 #!/usr/bin/env perl
 
+use 5.010;
 use strict;
 use warnings;
-use 5.010;
 use Getopt::Std;
+use Data::Dumper;
+
+use constant {
+    LOGDEBUG  => 1,
+    LOGINFO   => 2,
+    LOGWARN   => 3
+};
+
+
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
-
-our $VERSION = 0.1;
+our $VERSION    = 0.1;
 my %opts;
-if(!getopts('vn', \%opts)){
-    exit(1);
-}
-
-my $optVerbose  = $opts{'v'};
+exit(1) if !getopts('vnq', \%opts);
+my $optVerbose  = $opts{'v'} ? 1 : ($opts{'q'} ? 3 : 2 );
 my $optDryrun   = $opts{'n'};
 my $optType     = shift || "help";
 
+sub HELP_MESSAGE    { say "$0 [-nvq] <server|agent> ";   }
+sub VERSION_MESSAGE { say "monicake version $VERSION";  }
+
 sub info
 {
-    return if !$optVerbose;
-    my $msg = shift;
+    my $msg     = shift;
+    my $level   = shift || LOGINFO;
+
+    return if ($optVerbose > $level);
     say "[MONICAKE] $msg";
 }
 
 sub runCmd
 {
     my $cmd = shift;
-    info "Run command:";
+    if ($optVerbose <= LOGINFO && $cmd !~ />/) { $cmd .= " >/dev/null"; }
 
-    say $cmd if $optVerbose || $optDryrun;
+    info "Run command:\n$cmd", LOGDEBUG;
     return 0 if $optDryrun;
 
-    if (!$optVerbose) { $cmd += ">/dev/null"; }
     my $ret = system($cmd);
     if ($ret){
         info "Return code is $ret";
@@ -44,11 +53,10 @@ sub installPackage
 {
     my $packageLine = join(" ", @_);
     my $cmd         = "DEBIAN_FRONTEND=noninteractive apt-get -y install $packageLine";
-    my $ret;
 
     info "Begin install packages:$packageLine";
 
-    $ret = runCmd($cmd);
+    my $ret = runCmd($cmd);
     if (!$ret){
         info("Install succeed.");
     }else{
@@ -88,30 +96,23 @@ create database zabbix character set utf8 collate utf8_bin;
 grant all privileges on zabbix.* to zabbix@localhost identified by 'zabbix';
 EOM
 
-sub HELP_MESSAGE
-{
-    say "$0 [-nv] <server|agent> ";
-}
-
-sub VERSION_MESSAGE
-{
-    say "monicake version 0.1";
-}
 
 # MAIN
-
 if ($optType eq "agent"){
     info("Begin install Zabbix Agent.");
     installPackage("zabbix-agent");
 }elsif ($optType eq "server"){
     info("Begin install Zabbix Server.");
     installPackage("zabbix-server-mysql zabbix-frontend-php php5-mysql");
+    info("Configure apache.");
     runCmd("echo 'Alias /z /usr/share/zabbix' > /etc/apache2/sites-available/zabbix.conf");
     runCmd("a2ensite zabbix");
     runCmd("echo '$confServerApachePhp' > /etc/apache2/conf-available/php-zabbix.conf");
     runCmd("a2enconf php-zabbix");
     runCmd("mysqladmin -u root password p1");
     runCmd("mysql -uroot -pp1 <<EOF\n$dbSetup\nEOF");
+
+    info("Configure db.");
     runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -uroot -pp1 zabbix");
     runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -uroot -pp1 zabbix");
     runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -uroot -pp1 zabbix");
@@ -119,6 +120,7 @@ if ($optType eq "agent"){
     $b=~s/\$/\\\$/g;
     runCmd("cat >/etc/zabbix/zabbix.conf.php <<EOF\n$b\nEOF");
     runCmd("service apache2 restart");
+    info("Done.");
 } else {
     &HELP_MESSAGE;
 }
