@@ -76,6 +76,11 @@ $IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
 ?>
 EOM
 
+my $dbSetup = << 'EOM';
+create database zabbix character set utf8 collate utf8_bin;
+grant all privileges on zabbix.* to zabbix@localhost identified by 'zabbix';
+EOM
+
 sub HELP_MESSAGE
 {
     say "$0 [-nv] <server|agent> ";
@@ -99,6 +104,11 @@ if ($optType eq "agent"){
     runCmd("echo '$confServerApachePhp' > /etc/apache2/conf-available/php-zabbix.conf");
     runCmd("a2enconf php-zabbix");
     runCmd("mysqladmin -u root password p1");
+    runCmd("mysql -uroot -pp1 <<EOF\n$dbSetup\nEOF");
+    runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -uroot -pp1 zabbix");
+    runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -uroot -pp1 zabbix");
+    runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -uroot -pp1 zabbix");
+
     my $b=$confServerPhp;
     $b=~s/\$/\\\$/g;
     runCmd("cat >/etc/zabbix/zabbix.conf.php <<EOF\n$b\nEOF");
