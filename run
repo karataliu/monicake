@@ -2,21 +2,35 @@
 
 use strict;
 use warnings;
-use feature qw(say);
+use 5.010;
+use Getopt::Std;
+$Getopt::Std::STANDARD_HELP_VERSION = 1;
 
-my $command = shift;
+our $VERSION = 0.1;
+my %opts;
+if(!getopts('vn', \%opts)){
+    exit(1);
+}
+
+my $optVerbose  = $opts{'v'};
+my $optDryrun   = $opts{'n'};
+my $optType     = shift || "help";
 
 sub info
 {
+    return if !$optVerbose;
     my $msg = shift;
     say "[MONICAKE] $msg";
 }
 
-sub run()
+sub runCmd
 {
     my $cmd = shift;
-    info "Executing:$cmd";
-    #system($cmd);
+    if($optDryrun){ 
+        say $cmd;
+        return 0 ; 
+    }
+    system($cmd);
 }
 
 sub installPackage
@@ -27,7 +41,7 @@ sub installPackage
 
     info "Begin install following packages:$packageLine";
 
-    $ret = &run($cmd);
+    $ret = runCmd($cmd);
     if (!$ret){
         info("Install succeed.");
     }else{
@@ -35,7 +49,7 @@ sub installPackage
     }
 }
 
-my $php_conf = << 'EOM';
+my $confServerApachePhp = << 'EOM';
 php_value max_execution_time 300
 php_value memory_limit 128M
 php_value post_max_size 16M
@@ -44,9 +58,8 @@ php_value max_input_time 300
 php_value date.timezone Asia/Shanghai
 EOM
 
-my $php_zab = << 'EOM';
+my $confServerPhp = << 'EOM';
 <?php
-// Zabbix GUI configuration file
 global $DB;
 
 $DB['TYPE']     = 'MYSQL';
@@ -54,33 +67,44 @@ $DB['SERVER']   = 'localhost';
 $DB['PORT']     = '0';
 $DB['DATABASE'] = 'zabbix';
 $DB['USER']     = 'root';
-$DB['PASSWORD'] = 'k';
-
-// SCHEMA is relevant only for IBM_DB2 database
-$DB['SCHEMA'] = '';
+$DB['PASSWORD'] = 'p1';
 
 $ZBX_SERVER      = 'localhost';
 $ZBX_SERVER_PORT = '10051';
 $ZBX_SERVER_NAME = '';
-
 $IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
 ?>
 EOM
 
-if ($command eq "agent"){
+sub HELP_MESSAGE
+{
+    say "$0 [-nv] <server|agent> ";
+}
+
+sub VERSION_MESSAGE
+{
+    say "monicake version 0.1";
+}
+
+# MAIN
+
+if ($optType eq "agent"){
     info("Begin install Zabbix Agent.");
     installPackage("zabbix-agent");
-}elsif ($command eq "server"){
+}elsif ($optType eq "server"){
     info("Begin install Zabbix Server.");
     installPackage("zabbix-server-mysql zabbix-frontend-php php5-mysql");
-    run("echo 'Alias /z /usr/share/zabbix' > /etc/apache2/sites-available/zabbix.conf");
-    run("a2ensite zabbix");
-    run("echo '$php_conf' > /etc/apache2/conf-available/php-zabbix.conf");
-    run("a2enconf php-zabbix");
-    run("service apache2 restart");
-    run("mysqladmin -u root password p1");
+    runCmd("echo 'Alias /z /usr/share/zabbix' > /etc/apache2/sites-available/zabbix.conf");
+    runCmd("a2ensite zabbix");
+    runCmd("echo '$confServerApachePhp' > /etc/apache2/conf-available/php-zabbix.conf");
+    runCmd("a2enconf php-zabbix");
+    runCmd("mysqladmin -u root password p1");
+    my $b=$confServerPhp;
+    $b=~s/\$/\\\$/g;
+    runCmd("cat >/etc/zabbix/zabbix.conf.php <<EOF\n$b\nEOF");
+    runCmd("service apache2 restart");
 } else {
-    say "$0 <agent|server>";
+    &HELP_MESSAGE;
 }
 
 
