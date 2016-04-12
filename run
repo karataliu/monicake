@@ -128,7 +128,9 @@ if ($optType eq "agent"){
     info("Configure db.");
     #runCmd("mysqladmin -u root password p1");
     runCmd("mysql <<EOF\n$dbSetup\nEOF");
-    runCmd("zcat /usr/share/zabbix-server-mysql/{schema,images,data}.sql.gz |mysql -uzabbix -pzabbix zabbix");
+    runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
+    runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
+    runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
     runCmd("cat >/etc/zabbix/zabbix.conf.php <<EOF\n$confServerPhp\nEOF");
     runCmd("cat >/etc/zabbix/zabbix_server.conf <<EOF\n$confServer\nEOF");
     runCmd("cat >/etc/default/zabbix-server <<EOF\n$confDefault\nEOF");
