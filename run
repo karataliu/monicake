@@ -38,7 +38,7 @@ sub info
 sub runCmd
 {
     my $cmd = shift;
-    if ($optVerbose > LOGINFO && $cmd !~ />/) { $cmd .= " >/dev/null"; }
+    if ($optVerbose >= LOGINFO && $cmd !~ /\$cat >/) { $cmd .= " >/dev/null"; }
 
     info "Run command:\n$cmd", LOGDEBUG;
     return 0 if $optDryrun;
@@ -49,6 +49,15 @@ sub runCmd
     }
 
     return $ret;
+}
+
+sub installFile
+{
+    my $path        = shift;
+    my $content     = shift;
+
+    $content =~ s/\$/\\\$/g if $content=~/\$/;
+    runCmd("cat >$path <<EOF\n$content\nEOF");
 }
 
 sub installPackage
@@ -116,18 +125,29 @@ START=yes
 CONFIG_FILE="/etc/zabbix/zabbix_server.conf"
 EOM
 
+my $zabbixServerIp="192.168.0.2";
+my $confAgent = << "EOM";
+Server=$zabbixServerIp
+ServerActive=$zabbixServerIp
+#Hostname=Zabbivm1
+Include=/etc/zabbix/zabbix_agentd.conf.d/
+EOM
+
 my %flow = (
     agent   => [
         {
             name    => "install Zabbix Agent package.",
             run     => sub {
-                info("Begin install Zabbix Agent.");
                 installPackage("zabbix-agent");
             },
         },
         {
-            name    => "config Zabbix Agent.",
-            run     => sub { say 'foo';0;},
+            name    => "Config zabbix agent.",
+            run     => sub { installFile('/etc/zabbix/zabbix_agentd.conf', $confAgent); },
+        },
+        {
+            name    => "Restart Zabbix Agent service.",
+            run     => sub { runCmd('service zabbix-agent restart');},
         },
     ],
     server  => [
@@ -153,16 +173,17 @@ my %flow = (
                 runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
                 runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
                 runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
-                $b = $confServerPhp;
-                $b =~ s/\$/\\\$/g;
-                runCmd("cat >/etc/zabbix/zabbix.conf.php <<EOF\n$b\nEOF");
-                runCmd("cat >/etc/zabbix/zabbix_server.conf <<EOF\n$confServer\nEOF");
-                runCmd("cat >/etc/default/zabbix-server <<EOF\n$confDefault\nEOF");
+                installFile('/etc/zabbix/zabbix.conf.php', $confServerPhp);
+                installFile('/etc/zabbix/zabbix_server.conf', $confServer);
+                installFile('/etc/default/zabbix-server', $confDefault);
             },
         },
         {
             name    => "restart service.",
-            run     => sub { runCmd("service apache2 restart");   }
+            run     => sub {
+                runCmd("service apache2 restart")
+                && runCmd("service zabbix-server restart");
+            }
         },
     ],
 );
