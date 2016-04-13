@@ -160,29 +160,29 @@ my %flow = (
         {
             name    => "configure apache.",
             run     => sub {
-                runCmd("echo 'Alias /z /usr/share/zabbix' > /etc/apache2/sites-available/zabbix.conf");
-                runCmd("a2ensite zabbix");
-                runCmd("echo '$confServerApachePhp' > /etc/apache2/conf-available/php-zabbix.conf");
-                runCmd("a2enconf php-zabbix");
+                runCmd("echo 'Alias /z /usr/share/zabbix' > /etc/apache2/sites-available/zabbix.conf")
+                || runCmd("a2ensite zabbix")
+                || runCmd("echo '$confServerApachePhp' > /etc/apache2/conf-available/php-zabbix.conf")
+                || runCmd("a2enconf php-zabbix");
             },
         },
         {
             name    => "configure db.",
             run     => sub {
-                runCmd("mysql <<EOF\n$dbSetup\nEOF");
-                runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
-                runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
-                runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
-                installFile('/etc/zabbix/zabbix.conf.php', $confServerPhp);
-                installFile('/etc/zabbix/zabbix_server.conf', $confServer);
-                installFile('/etc/default/zabbix-server', $confDefault);
+                runCmd("mysql <<EOF\n$dbSetup\nEOF")
+                || runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb")
+                || runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb")
+                || runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb")
+                || installFile('/etc/zabbix/zabbix.conf.php', $confServerPhp)
+                || installFile('/etc/zabbix/zabbix_server.conf', $confServer)
+                || installFile('/etc/default/zabbix-server', $confDefault);
             },
         },
         {
             name    => "restart service.",
             run     => sub {
                 runCmd("service apache2 restart")
-                && runCmd("service zabbix-server restart");
+                || runCmd("service zabbix-server restart");
             }
         },
     ],
