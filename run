@@ -4,7 +4,6 @@ use 5.010;
 use strict;
 use warnings;
 use Getopt::Std;
-use Data::Dumper;
 
 use constant {
     LOGDEBUG  => 1,
@@ -12,17 +11,20 @@ use constant {
     LOGWARN   => 3
 };
 
-
-$Getopt::Std::STANDARD_HELP_VERSION = 1;
 our $VERSION    = 0.1;
-my %opts;
-exit(1) if !getopts('vnq', \%opts);
-my $optVerbose  = $opts{'v'} ? 1 : ($opts{'q'} ? 3 : 2 );
-my $optDryrun   = $opts{'n'};
+my $optVerbose;
+my $optDryrun;
+
+{   # Parse options.
+    my %opts;
+    exit(1) unless getopts('vnq', \%opts);
+    $optVerbose  = $opts{'v'} ? 1 : ($opts{'q'} ? 3 : 2 );
+    $optDryrun   = $opts{'n'};
+}
+
 my $optType     = shift || "help";
 
-sub HELP_MESSAGE    { say "$0 [-nvq] <server|agent> ";   }
-sub VERSION_MESSAGE { say "monicake version $VERSION";  }
+sub HELP_MESSAGE    { say "$0 [-nvq] <server|agent> ";  exit 0;}
 
 sub info
 {
@@ -43,7 +45,7 @@ sub runCmd
 
     my $ret = system($cmd);
     if ($ret){
-        info "Return code is $ret";
+        info "Return code is $ret", LOGDEBUG;
     }
 
     return $ret;
@@ -54,14 +56,16 @@ sub installPackage
     my $packageLine = join(" ", @_);
     my $cmd         = "DEBIAN_FRONTEND=noninteractive apt-get -y install $packageLine";
 
-    info "Begin install packages:$packageLine";
+    info "Begin install packages:$packageLine", LOGDEBUG;
 
     my $ret = runCmd($cmd);
     if (!$ret){
-        info("Install succeed.");
+        info("Install succeed.", LOGDEBUG);
     }else{
-        info("Install failed.");
+        info("Install failed.", LOGDEBUG);
     }
+
+    return $ret;
 }
 
 my $zabbixDb        = "zabbixdb";
@@ -112,36 +116,72 @@ START=yes
 CONFIG_FILE="/etc/zabbix/zabbix_server.conf"
 EOM
 
-# MAIN
-if ($optType eq "agent"){
-    info("Begin install Zabbix Agent.");
-    installPackage("zabbix-agent");
-}elsif ($optType eq "server"){
-    info("Begin install Zabbix Server.");
-    installPackage("zabbix-server-mysql zabbix-frontend-php php5-mysql");
-    info("Configure apache.");
-    runCmd("echo 'Alias /z /usr/share/zabbix' > /etc/apache2/sites-available/zabbix.conf");
-    runCmd("a2ensite zabbix");
-    runCmd("echo '$confServerApachePhp' > /etc/apache2/conf-available/php-zabbix.conf");
-    runCmd("a2enconf php-zabbix");
+my %flow = (
+    agent   => [
+        {
+            name    => "install Zabbix Agent package.",
+            run     => sub {
+                info("Begin install Zabbix Agent.");
+                installPackage("zabbix-agent");
+            },
+        },
+        {
+            name    => "config Zabbix Agent.",
+            run     => sub { say 'foo';0;},
+        },
+    ],
+    server  => [
+        {
+            name    => "install Zabbix Server package.",
+            run     => sub {
+                installPackage("zabbix-server-mysql zabbix-frontend-php php5-mysql");
+            },
+        },
+        {
+            name    => "configure apache.",
+            run     => sub {
+                runCmd("echo 'Alias /z /usr/share/zabbix' > /etc/apache2/sites-available/zabbix.conf");
+                runCmd("a2ensite zabbix");
+                runCmd("echo '$confServerApachePhp' > /etc/apache2/conf-available/php-zabbix.conf");
+                runCmd("a2enconf php-zabbix");
+            },
+        },
+        {
+            name    => "configure db.",
+            run     => sub {
+                runCmd("mysql <<EOF\n$dbSetup\nEOF");
+                runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
+                runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
+                runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
+                $b = $confServerPhp;
+                $b =~ s/\$/\\\$/g;
+                runCmd("cat >/etc/zabbix/zabbix.conf.php <<EOF\n$b\nEOF");
+                runCmd("cat >/etc/zabbix/zabbix_server.conf <<EOF\n$confServer\nEOF");
+                runCmd("cat >/etc/default/zabbix-server <<EOF\n$confDefault\nEOF");
+            },
+        },
+        {
+            name    => "restart service.",
+            run     => sub { runCmd("service apache2 restart");   }
+        },
+    ],
+);
 
-    info("Configure db.");
-    #runCmd("mysqladmin -u root password p1");
-    runCmd("mysql <<EOF\n$dbSetup\nEOF");
-    runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
-    runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
-    runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb");
-    $b = $confServerPhp;
-    $b =~ s/\$/\\\$/g;
-    runCmd("cat >/etc/zabbix/zabbix.conf.php <<EOF\n$b\nEOF");
-    runCmd("cat >/etc/zabbix/zabbix_server.conf <<EOF\n$confServer\nEOF");
-    runCmd("cat >/etc/default/zabbix-server <<EOF\n$confDefault\nEOF");
-
-    runCmd("service apache2 restart");
-    info("Done.");
-} else {
+my $steps = $flow{$optType};
+if (!$steps){
     &HELP_MESSAGE;
+    exit(1);
 }
 
-
+my $len = @$steps;
+my $index =0 ;
+foreach my $step (@$steps){
+    ++$index;
+    info "($index/$len) $$step{name}";
+    my $run = $$step{run};
+    if ((my $ret = &$run)){
+        info "failed with code: $ret";
+        last;
+    }
+}
 
