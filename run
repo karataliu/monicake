@@ -125,7 +125,7 @@ START=yes
 CONFIG_FILE="/etc/zabbix/zabbix_server.conf"
 EOM
 
-my $zabbixServerIp="192.168.0.2";
+my $zabbixServerIp = shift || "192.168.0.4";
 my $confAgent = << "EOM";
 Server=$zabbixServerIp
 ServerActive=$zabbixServerIp
