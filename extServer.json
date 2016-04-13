@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+   "vmName":{
+      "type": "string",
+      "metadata": {
+        "description": "vm name."
+      }
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmName'),'/installMonitorServer')]",
+      "location": "Southeast Asia", 
+      "properties": {
+            "publisher": "Microsoft.OSTCExtensions",
+            "type": "CustomScriptForLinux",
+            "typeHandlerVersion": "1.4",
+            "settings":{
+                "fileUris": ["https://raw.githubusercontent.com/karataliu/monicake/master/run"],
+                "commandToExecute": "./run -v server"
+            }
+      }
+    }
+  ]
+}
+
