@@ -51,7 +51,7 @@
     "storageAccount": "[parameters('storageAccount')]",
     "vmStorageAccountContainerName": "vhds",
     "vmName": "[parameters('monitorVmName')]",
-    "vmSize": "Standard_A3",
+    "vmSize": "Standard_D2",
     "storageAccountType": "Standard_LRS",
     "subnetName": "Subnet",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
@@ -140,7 +140,35 @@
           ]
         }
       }
+    },
+    {
+     "apiVersion": "2015-01-01", 
+     "name": "nestedInstallMonitorServer", 
+     "type": "Microsoft.Resources/deployments",
+     "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+      ],
+     "properties": { 
+       "mode": "Incremental", 
+       "templateLink": {
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/extServer.json",
+          "contentVersion": "1.0.0.0"
+       }, 
+       "parameters": { 
+          "vmName":{"value": "[variables('vmName')]"} 
+       } 
+     } 
     }
-  ]
+  ],
+  "outputs": {
+    "Monitor Server Endpoint":{
+      "type": "string",
+      "value": "[concat('http://',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'/z')]"
+    },
+    "Monitor Server internal IP":{
+      "type": "object",
+      "value": "[reference(variables('nicName'))]"
+    }
+  }
 }
 
