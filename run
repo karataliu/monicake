@@ -38,7 +38,7 @@ sub info
 sub runCmd
 {
     my $cmd = shift;
-    if ($optVerbose >= LOGINFO && $cmd !~ /\$cat >/) { $cmd .= " >/dev/null"; }
+    if ($optVerbose >= LOGINFO && $cmd !~ /<<EOF/) { $cmd .= " >/dev/null"; }
 
     info "Run command:\n$cmd", LOGDEBUG;
     return 0 if $optDryrun;
