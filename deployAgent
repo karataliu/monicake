@@ -1,14 +1,36 @@
-#!/bin/sh
-if [ "$#" -ne 2 ] ; then
-    echo $0 "<resource-group> <server-ip>"
-    exit 1
-fi
+#!/usr/bin/env perl
+use 5.010;
+use warnings;
+use strict;
 
-VMS=/tmp/$1_vms
-azure vm list $1|tail -n+5 |head -n-1 |awk '{print $2}' > $VMS
+if (@ARGV < 2){
+    say "$0 <resource-group> <server-ip> <vm-list>...\n If <vm-list> is empty, will do auto discovery.";
+}
 
-vi $VMS
+my $resourceGroup  = shift;
+my $serverIp       = shift;
+my @vms            = @ARGV;
 
-VMT=/tmp/$1_vms_deploy.json
-cat $VMS| ./genAgentTemplate $2 >$VMT
-azure group deployment create $1 -f $VMT -n deployMonitorAgent
+my $vmcount         = @vms;
+my $VMS="/tmp/${resourceGroup}_vms";
+
+my $ret=1;
+if ($vmcount == 0){
+    say "No vm specified, will do auto discovery.";
+    system("azure vm list $resourceGroup|tail -n+5 |head -n-1 |awk '{print \$2}' > $VMS");
+    $ret = system("vim $VMS");
+}else{
+    open F,">",$VMS;
+    print F join("\n", @vms);
+    close F;
+    $ret = 0;
+}
+
+if ($ret) {
+    say "aborted";
+    exit 2;
+}
+
+my $VMT="/tmp/${resourceGroup}_vms_deploy.json";
+system("cat $VMS| ./genAgentTemplate $serverIp >$VMT");
+system("azure group deployment create $resourceGroup -f $VMT -n deployMonitorAgent");
