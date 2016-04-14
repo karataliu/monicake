@@ -163,7 +163,7 @@
   "outputs": {
     "Monitor Server Endpoint":{
       "type": "string",
-      "value": "[concat('http://',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'/z')]"
+      "value": "[concat('http://',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'/zab/')]"
     },
     "Monitor Server internal IP":{
       "type": "object",

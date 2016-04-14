@@ -82,6 +82,7 @@ my $zabbixUser      = "zabbix";
 my $zabbixPassword  = "pabbix";
 
 my $confServerApachePhp = << 'EOM';
+Alias /zab /usr/share/zabbix
 php_value max_execution_time 300
 php_value memory_limit 128M
 php_value post_max_size 16M
@@ -160,10 +161,8 @@ my %flow = (
         {
             name    => "configure apache.",
             run     => sub {
-                runCmd("echo 'Alias /z /usr/share/zabbix' > /etc/apache2/sites-available/zabbix.conf")
-                || runCmd("a2ensite zabbix")
-                || runCmd("echo '$confServerApachePhp' > /etc/apache2/conf-available/php-zabbix.conf")
-                || runCmd("a2enconf php-zabbix");
+                installFile('/etc/apache2/conf-available/zabbix.conf', $confServerApachePhp)
+                || runCmd("a2enconf zabbix");
             },
         },
         {
