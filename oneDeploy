@@ -1,0 +1,37 @@
+#!/usr/bin/env perl
+use 5.010;
+use warnings;
+use strict;
+
+if (@ARGV < 1){
+    say "$0 <resource-group> <vm-list>...\n If <vm-list> is empty, will do auto discovery.";
+}
+
+my $resourceGroup  = shift;
+my @vms            = @ARGV;
+
+my $ret = system("azure group deployment create $resourceGroup -f vmMonitor.json |tee /tmp/onedep.log ");
+if($ret){
+    say "deploy monitor vm failed";
+    exit 1;
+}
+
+open FL,"<","/tmp/onedep.log";
+my @output = <FL>;
+close FL;
+
+my $endpoint;
+my $ip;
+foreach (@output){
+    $endpoint = $1 if (/server public endpoint\s*String\s*(\S+)/);
+    $ip = $1 if (/server internal IP\s*String\s*(\S+)/);
+}
+
+unless ($ip){
+    say "server ip not found";
+    exit 2;
+}
+
+system("./deployAgent $resourceGroup $ip @vms");
+
+say "Succeed! Server endpoint: $endpoint";
