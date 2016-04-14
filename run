@@ -186,7 +186,7 @@ my %flow = (
         {
             name    => "Configure autoreg.",
             run     => sub {
-                runCmd("mysql <<EOF\n$autoRegSetup\nEOF");
+                runCmd("mysql -u$zabbixUser -p$zabbixPassword $zabbixDb <<EOF\n$autoRegSetup\nEOF");
             },
         },
         {

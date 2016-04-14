@@ -167,7 +167,7 @@
     },
     "Monitor Server internal IP":{
       "type": "object",
-      "value": "[reference(variables('nicName'))]"
+      "value": "[reference(variables('nicName')).ipConfigurations[0].privateIPAddress]"
     }
   }
 }
