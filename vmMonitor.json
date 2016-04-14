@@ -51,22 +51,12 @@
     "storageAccount": "[parameters('storageAccount')]",
     "vmStorageAccountContainerName": "vhds",
     "vmName": "[parameters('monitorVmName')]",
-    "vmSize": "Standard_D2",
-    "storageAccountType": "Standard_LRS",
+    "vmSize": "Standard_DS2",
     "subnetName": "Subnet",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
   },
   "resources": [
-    {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('storageAccount')]",
-      "apiVersion": "2015-05-01-preview",
-      "location": "[variables('location')]",
-      "properties": {
-        "accountType": "[variables('storageAccountType')]"
-      }
-    },
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/publicIPAddresses",
