@@ -115,9 +115,9 @@ grant all privileges on $zabbixDb.* to $zabbixUser\@localhost identified by '$za
 EOM
 
 my $autoRegSetup = <<'EOM';
-INSERT INTO `actions` VALUES (7,'autoreg1',2,0,0,0,'Auto registration: {HOST.HOST}','Host name: {HOST.HOST}\r\nHost IP: {HOST.IP}\r\nAgent port: {HOST.PORT}',0,'','');
-INSERT INTO `operations` VALUES (7,7,6,0,1,1,0);
-INSERT INTO `optemplate` VALUES (2,7,10001);
+INSERT INTO \`actions\` VALUES (7,'autoreg1',2,0,0,0,'Auto registration: {HOST.HOST}','Host name: {HOST.HOST}\r\nHost IP: {HOST.IP}\r\nAgent port: {HOST.PORT}',0,'','');
+INSERT INTO \`operations\` VALUES (7,7,6,0,1,1,0);
+INSERT INTO \`optemplate\` VALUES (2,7,10001);
 EOM
 
 my $confServer = << "EOM";

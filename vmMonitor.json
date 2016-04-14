@@ -161,12 +161,12 @@
     }
   ],
   "outputs": {
-    "Monitor Server Endpoint":{
+    "Monitoring server public endpoint":{
       "type": "string",
       "value": "[concat('http://',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'/zab/')]"
     },
-    "Monitor Server internal IP":{
-      "type": "object",
+    "Monitoring server internal IP":{
+      "type": "string",
       "value": "[reference(variables('nicName')).ipConfigurations[0].privateIPAddress]"
     }
   }
