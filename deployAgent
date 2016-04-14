@@ -1,67 +1,14 @@
-#!/usr/bin/env perl
+#!/bin/sh
+if [ "$#" -ne 2 ] ; then
+    echo $0 "<resource-group> <server-ip>"
+    exit 1
+fi
 
-use 5.010;
+VMS=/tmp/$1_vms
+azure vm list $1|tail -n+5 |head -n-1 |awk '{print $2}' > $VMS
 
-my $rg = shift;
-my $serverIp = shift;
+vi $VMS
 
-my @l = `azure vm list $rg`;
-my @vms;
-shift @l; shift @l; shift @l; shift @l;
-foreach (@l){
-    next if /^info/;
-    @col = split / +/,$_;
-    next if $col[1] =~ /mon/;
-    push @vms, $col[1];
-}
-
-say "Found vms: @vms";
-my $resources;
-foreach (@vms){
-    my $templateResource = << "EOF";
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "$_/installMonitorAgent",
-      "location": "Southeast Asia", 
-      "properties": {
-            "publisher": "Microsoft.OSTCExtensions",
-            "type": "CustomScriptForLinux",
-            "typeHandlerVersion": "1.4",
-            "settings":{
-                "fileUris": ["https://raw.githubusercontent.com/karataliu/monicake/master/run"],
-                "commandToExecute": "[concat('./run -v agent ', parameters('serverIp'))]"
-            }
-      }
-    },
-EOF
-    $resources .= $templateResource;
-}
-
-chomp($resources); chop($resources);
-
-my $fullTemplate = << "EOF";
-{
-  "\$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "serverIp":{
-        "type": "string",
-        "metadata": {
-          "description": "server ip."
-        }
-    }
-  },
-  "resources": [
-$resources
-  ]
-}
-EOF
-
-my $path = "/tmp/deployAgent.json";
-open $tpl, ">", "/tmp/deployAgent.json";
-print $tpl $fullTemplate;
-
-my $cmd = "azure group deployment create $rg -f $path -n deployMonitorAgent -p '{\"serverIp\":{\"value\":\"$serverIp\"}}'";
-say $cmd;
-`$cmd`;
+VMT=/tmp/$1_vms_deploy.json
+cat $VMS| ./genAgentTemplate $2 >$VMT
+azure group deployment create $1 -f $VMT -n deployMonitorAgent

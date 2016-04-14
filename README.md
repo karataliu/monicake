@@ -7,4 +7,3 @@ Monitoring.
 </a>
 
 
-https://raw.githubusercontent.com/karataliu/monicake/master/extServer.json
