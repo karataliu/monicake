@@ -12,7 +12,7 @@ foreach (@vms){
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "$_/installMonitorAgent",
+      "name": "$_/installMonitoringAgent",
       "location": "Southeast Asia", 
       "properties": {
             "publisher": "Microsoft.OSTCExtensions",

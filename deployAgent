@@ -33,4 +33,4 @@ if ($ret) {
 
 my $VMT="/tmp/${resourceGroup}_vms_deploy.json";
 system("cat $VMS| ./genAgentTemplate $serverIp >$VMT");
-system("azure group deployment create $resourceGroup -f $VMT -n deployMonitorAgent");
+system("azure group deployment create $resourceGroup -f $VMT -n MonitoringAgent");

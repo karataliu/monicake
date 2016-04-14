@@ -11,7 +11,7 @@ use constant {
     LOGWARN   => 3
 };
 
-our $VERSION    = 0.1.3;
+our $VERSION    = 0.1.4;
 my $optVerbose;
 my $optDryrun;
 
