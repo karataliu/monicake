@@ -34,4 +34,4 @@ unless ($ip){
 
 system("./deployAgent $resourceGroup $ip @vms");
 
-say "Succeed! Server endpoint: $endpoint";
+say "Server endpoint: $endpoint";
