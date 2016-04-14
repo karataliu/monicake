@@ -2,15 +2,28 @@
 use 5.010;
 use warnings;
 use strict;
+use Getopt::Long;
+
+my $optAgent;
+my $optVmlist;
+
+GetOptions ("agent=s"       => \$optAgent,
+            "vmlist=s"      => \$optVmlist,
+            "help"          => sub { say "hi"; },
+          );
+
+$optAgent = "auto" unless defined($optAgent);
+$optVmlist = "" unless defined($optVmlist);
 
 if (@ARGV < 1){
     say "$0 <resource-group> <vm-list>...\n If <vm-list> is empty, will do auto discovery.";
 }
 
 my $resourceGroup  = shift;
-my @vms            = @ARGV;
 
-my $ret = system("azure group deployment create $resourceGroup -f vmMonitor.json |tee /tmp/onedep.log ");
+my $ret = 0;
+$ret = system("azure group deployment create $resourceGroup -f vmMonitor.json |tee /tmp/onedep.log ");
+
 if($ret){
     say "deploy monitor vm failed";
     exit 1;
@@ -21,17 +34,47 @@ my @output = <FL>;
 close FL;
 
 my $endpoint;
-my $ip;
+my $serverIp;
+my $monitorVm;
 foreach (@output){
     $endpoint = $1 if (/server public endpoint\s*String\s*(\S+)/);
-    $ip = $1 if (/server internal IP\s*String\s*(\S+)/);
+    $serverIp = $1 if (/server internal IP\s*String\s*(\S+)/);
+    $monitorVm = $1 if (/monitorVmName\s*String\s*(\S+)/);
 }
 
-unless ($ip){
+unless (defined($serverIp) && defined($endpoint) && defined($monitorVm)){
     say "server ip not found";
     exit 2;
 }
 
-system("./deployAgent $resourceGroup $ip @vms");
+say "Server interal IP: $serverIp";
+say "Server public endpoint: $endpoint";
 
-say "Server endpoint: $endpoint";
+my @vms;
+my $VMS="/tmp/${resourceGroup}_vms";
+
+if ($optAgent eq "no"){
+    exit 0;
+} elsif ($optAgent eq "list"){
+    @vms = split / /, $optVmlist;
+    open F,">",$VMS;
+    print F join("\n", @vms);
+    print F "\n";
+    close F;
+} elsif ($optAgent eq "auto" || $optAgent eq "edit"){
+    my $cmd = "azure vm list $resourceGroup|tail -n+5 |head -n-1 |awk '{print \$2}'";
+    $cmd .= " |grep -v $monitorVm" if ($optAgent eq "auto");
+    say "do auto discovery.";
+    system("$cmd > $VMS");
+    if ($optAgent eq "edit"){
+        $ret = system("vim $VMS");
+        if ($ret) {
+            say "aborted";
+            exit 2;
+        }
+    }
+}
+
+my $VMT="/tmp/${resourceGroup}_vms_deploy.json";
+system("cat $VMS| ./genAgentTemplate $serverIp >$VMT");
+system("azure group deployment create $resourceGroup -f $VMT -n MonitoringAgent");
