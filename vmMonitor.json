@@ -157,7 +157,7 @@
     },
     "Monitoring server internal IP":{
       "type": "string",
-      "value": "[reference(variables('nicName')).ipConfigurations[0].privateIPAddress]"
+      "value": "[reference(variables('nicName')).ipConfigurations[0].properties.privateIPAddress]"
     }
   }
 }
