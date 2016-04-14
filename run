@@ -11,7 +11,7 @@ use constant {
     LOGWARN   => 3
 };
 
-our $VERSION    = 0.1.1;
+our $VERSION    = 0.1.2;
 my $optVerbose;
 my $optDryrun;
 
@@ -130,7 +130,6 @@ my $zabbixServerIp = shift || "192.168.0.4";
 my $confAgent = << "EOM";
 Server=$zabbixServerIp
 ServerActive=$zabbixServerIp
-#Hostname=Zabbivm1
 Include=/etc/zabbix/zabbix_agentd.conf.d/
 EOM
 
@@ -169,9 +168,10 @@ my %flow = (
             name    => "configure db.",
             run     => sub {
                 runCmd("mysql <<EOF\n$dbSetup\nEOF")
-                || runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb")
-                || runCmd("zcat /usr/share/zabbix-server-mysql/images.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb")
-                || runCmd("zcat /usr/share/zabbix-server-mysql/data.sql.gz |mysql -u$zabbixUser -p$zabbixPassword $zabbixDb")
+                || runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz "
+                            ."/usr/share/zabbix-server-mysql/images.sql.gz "
+                            ."/usr/share/zabbix-server-mysql/data.sql.gz ".
+                            "|mysql -u$zabbixUser -p$zabbixPassword $zabbixDb")
                 || installFile('/etc/zabbix/zabbix.conf.php', $confServerPhp)
                 || installFile('/etc/zabbix/zabbix_server.conf', $confServer)
                 || installFile('/etc/default/zabbix-server', $confDefault);
