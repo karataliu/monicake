@@ -12,6 +12,7 @@ GetOptions ("agent=s"       => \$optAgent,
             "help"          => sub { say "hi"; },
           );
 
+# handle relates between the two.
 $optAgent = "auto" unless defined($optAgent);
 $optVmlist = "" unless defined($optVmlist);
 
@@ -78,3 +79,5 @@ if ($optAgent eq "no"){
 my $VMT="/tmp/${resourceGroup}_vms_deploy.json";
 system("cat $VMS| ./genAgentTemplate $serverIp >$VMT");
 system("azure group deployment create $resourceGroup -f $VMT -n MonitoringAgent");
+
+say "Done. Please visitor poprtal on: $endpoint";
