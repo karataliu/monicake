@@ -17,7 +17,8 @@ $optAgent = "auto" unless defined($optAgent);
 $optVmlist = "" unless defined($optVmlist);
 
 if (@ARGV < 1){
-    say "$0 <resource-group> <vm-list>...\n If <vm-list> is empty, will do auto discovery.";
+    say "$0 [--agent=<auto|list|no>] [--vmlist] <resource-group>";
+    exit 1;
 }
 
 my $resourceGroup  = shift;
