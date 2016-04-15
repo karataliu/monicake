@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "vnet name."
+      },
+      "defaultValue": "myvnet"
+    },
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "subnet name."
+      },
+      "defaultValue": "Subnet"
+    }
+  },
+  "variables": {
+    "subnet": "s1"
+  },
+  "resources": [
+  ],
+ "outputs": {
+    "data": { 
+        "value": "[reference('Microsoft.Network/virtualnetworks/myvnet/subnets/Subnet', '2016-03-30')]", 
+        "type" : "object"
+    }
+  }
+}
+
