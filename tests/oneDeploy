@@ -24,7 +24,7 @@ if (@ARGV < 1){
 my $resourceGroup  = shift;
 
 my $ret = 0;
-$ret = system("azure group deployment create $resourceGroup -f vmMonitor.json |tee /tmp/onedep.log ");
+$ret = system("azure group deployment create $resourceGroup -f ../azuredeploy.json -n configMonitoringVM |tee /tmp/onedep.log ");
 
 if($ret){
     say "deploy monitor vm failed";
@@ -59,10 +59,6 @@ if ($optAgent eq "no"){
     exit 0;
 } elsif ($optAgent eq "list"){
     @vms = split / /, $optVmlist;
-    open F,">",$VMS;
-    print F join("\n", @vms);
-    print F "\n";
-    close F;
 } elsif ($optAgent eq "auto" || $optAgent eq "edit"){
     my $cmd = "azure vm list $resourceGroup|tail -n+5 |head -n-1 |awk '{print \$2}'";
     $cmd .= " |grep -v $monitorVm" if ($optAgent eq "auto");
@@ -75,10 +71,19 @@ if ($optAgent eq "no"){
             exit 2;
         }
     }
+    open F, "<", $VMS;
+    while(<F>){
+        chomp;
+        push @vms, $_;
+    }
+    close F;
 }
 
-my $VMT="/tmp/${resourceGroup}_vms_deploy.json";
-system("cat $VMS| ./genAgentTemplate $serverIp >$VMT");
-system("azure group deployment create $resourceGroup -f $VMT -n MonitoringAgent");
+my $vmstr = join("\",\"", @vms);
+my $json = <<"EOM";
+{"vmNames":{"value":[\"$vmstr\"]},"serverIp":{"value":"$serverIp"}}
+EOM
+
+system("azure group deployment create $resourceGroup -f ../azuredeployMonitoringAgent.json -p '$json' -n configMonitoringAgents");
 
 say "Done. Please visitor poprtal on: $endpoint";

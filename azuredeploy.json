@@ -43,7 +43,7 @@
       "version":"latest"
     },
     "imageReference":"[variables('osType')]",
-    "location": "Southeast Asia",
+    "location": "[resourceGroup().location]",
     "OSDiskName": "[concat(parameters('monitorVmName'),'disk')]",
     "nicName": "[concat(parameters('monitorVmName'),'nic')]",
     "publicIPAddressName": "[concat(parameters('monitorVmName'),'ip')]",
@@ -133,7 +133,7 @@
     },
     {
      "apiVersion": "2015-01-01", 
-     "name": "nestedDeployMonitoringServer", 
+     "name": "nestedConfigMonitoringServer", 
      "type": "Microsoft.Resources/deployments",
      "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
@@ -141,7 +141,7 @@
      "properties": { 
        "mode": "Incremental", 
        "templateLink": {
-          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/extServer.json",
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringServer.json",
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": { 
