@@ -1,0 +1,73 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualNetworkName":{
+      "type": "string",
+      "metadata": {
+        "description": "vnet name."
+      },
+      "defaultValue": "myvnet"
+    }
+  },
+  "variables": {
+    "subnetName": "Subnet",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
+  },
+  "resources": [
+    {
+     "apiVersion": "2015-01-01", 
+     "name": "genips", 
+     "type": "Microsoft.Resources/deployments",
+     "properties": { 
+       "mode": "Incremental", 
+       "templateLink": {
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployVnetToIps.json",
+          "contentVersion": "1.0.0.0"
+       }, 
+       "parameters": {
+          "vnetName":{"value": "[parameters('virtualNetworkName')]"},
+          "subnetName":{"value": "[variables('subnetName')]"} 
+       }
+     } 
+    },
+    {
+     "apiVersion": "2015-01-01", 
+     "name": "ips2vms", 
+     "type": "Microsoft.Resources/deployments",
+     "properties": { 
+       "mode": "Incremental", 
+       "templateLink": {
+          "uri": "[concat('http://23.97.61.205/cgi-bin/ipc2vm?cou=',length(reference('genips').outputs.data.value))]",
+          "contentVersion": "1.0.0.0"
+       }, 
+       "parameters": {
+          "ipConfigurations":{"value": "[reference('genips').outputs.data.value]"}
+       }
+     } 
+    },
+    {
+     "apiVersion": "2015-01-01", 
+     "name": "vmsDeploy", 
+     "type": "Microsoft.Resources/deployments",
+     "properties": { 
+       "mode": "Incremental", 
+       "templateLink": {
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgent.json",
+          "contentVersion": "1.0.0.0"
+       }, 
+       "parameters": {
+          "vmNames":{"value": "[reference('ips2vms').outputs.data.value"}
+       }
+     } 
+    }
+  ],
+  "outputs": {
+    "ha":{
+      "value": "[reference('genips').outputs.data.value]",
+      "type": "array"
+    }
+  }
+}
+

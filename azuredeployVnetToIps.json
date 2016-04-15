@@ -17,15 +17,12 @@
       "defaultValue": "Subnet"
     }
   },
-  "variables": {
-    "subnet": "s1"
-  },
   "resources": [
   ],
  "outputs": {
     "data": { 
-        "value": "[reference('Microsoft.Network/virtualnetworks/myvnet/subnets/Subnet', '2016-03-30')]", 
-        "type" : "object"
+        "value": "[reference(concat('Microsoft.Network/virtualnetworks/', parameters('vnetName'), '/subnets/', parameters('subnetName')), '2016-03-30').ipConfigurations]",
+        "type" : "array"
     }
   }
 }
