@@ -58,7 +58,8 @@
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": {
-          "vmNames":{"value": "[reference('ips2vms').outputs.data.value"}
+          "vmNames":{"value": "[reference('ips2vms').outputs.data.value]"},
+          "serverIp":{"value": "192.168.5.6"}
        }
      } 
     }
