@@ -2,10 +2,10 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "vmName":{
-        "type": "string",
+    "vmNames":{
+        "type": "array",
         "metadata": {
-          "description": "vm name."
+          "description": "vm name list."
         }
     },
     "serverIp":{
@@ -15,12 +15,19 @@
         }
     }
   },
+  "variables": {
+      "location": "[resourceGroup().location]"
+  },
   "resources": [
     {
-      "apiVersion": "2015-06-15",
+      "name": "[concat(parameters('vmNames')[copyIndex()],'/installMonitoringAgent')]",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmName'),'/installMonitoringAgent')]",
-      "location": "Southeast Asia", 
+      "copy": {
+         "name": "vmCopy",
+         "count": "[length(parameters('vmNames'))]"
+      },
+      "apiVersion": "2015-06-15",
+      "location": "[variables('location')]",
       "properties": {
             "publisher": "Microsoft.OSTCExtensions",
             "type": "CustomScriptForLinux",
