@@ -2,32 +2,172 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-   "vmName":{
+    "monitorVmName": {
       "type": "string",
       "metadata": {
-        "description": "vm name."
+        "description": "vm name for the monitor vm."
+      }
+    },
+    "storageAccount": {
+      "type": "string",
+      "metadata": {
+        "description": "Vhd img location"
+      }
+    },
+    "virtualNetworkName":{
+      "type": "string",
+      "metadata": {
+        "description": "vnet name."
+      },
+      "defaultValue": "myvnet"
+    },
+    "subnetName":{
+      "type": "string",
+      "metadata": {
+        "description": "subnet name."
+      },
+      "defaultValue": "Subnet"
+    },
+    "username":{
+      "type": "string",
+      "metadata": {
+        "description": "Monitor vm user name."
+      },
+      "defaultValue": "monitoruser"
+    },
+    "password":{
+      "type": "securestring",
+      "metadata": {
+        "description": "Monitor vm password."
       }
     }
   },
   "variables": {
-      "location": "[resourceGroup().location]"
+    "osType":{
+      "publisher":"Canonical",
+      "offer":"UbuntuServer",
+      "sku":"14.04.4-LTS",
+      "version":"latest"
+    },
+    "imageReference":"[variables('osType')]",
+    "location": "[resourceGroup().location]",
+    "OSDiskName": "[concat(parameters('monitorVmName'),'disk')]",
+    "nicName": "[concat(parameters('monitorVmName'),'nic')]",
+    "publicIPAddressName": "[concat(parameters('monitorVmName'),'ip')]",
+    "publicIPAddressType": "Dynamic",
+    "storageAccount": "[parameters('storageAccount')]",
+    "vmStorageAccountContainerName": "vhds",
+    "vmName": "[parameters('monitorVmName')]",
+    "vmSize": "Standard_DS2",
+    "subnetName": "[parameters('subnetName')]",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
   },
   "resources": [
     {
       "apiVersion": "2015-06-15",
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmName'),'/configMonitoring')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddressName')]",
       "location": "[variables('location')]",
       "properties": {
-            "publisher": "Microsoft.OSTCExtensions",
-            "type": "CustomScriptForLinux",
-            "typeHandlerVersion": "1.4",
-            "settings":{
-                "fileUris": ["https://raw.githubusercontent.com/karataliu/monicake/master/run"],
-                "commandToExecute": "./run -v server"
-            }
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('monitorVmName')]"
+        }
       }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses/',variables('publicIPAddressName'))]"
+              },
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('vmName')]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('vmName'))]",
+          "adminUsername": "[parameters('username')]",
+          "adminPassword": "[parameters('password')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "vhd": {
+              "uri": "[concat('http://',variables('storageAccount'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
+            },
+            "name": "osdisk",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "imageReference":"[variables('imageReference')]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName')))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-06-15",
+          "type": "extensions",
+          "name": "configMonitoring",
+          "location": "[variables('location')]",
+          "dependsOn": [
+            "[variables('vmName')]"
+          ],
+          "properties": {
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.4",
+                "settings":{
+                    "fileUris": ["https://raw.githubusercontent.com/karataliu/monicake/master/run"],
+                    "commandToExecute": "./run -v server"
+                }
+          }
+        }
+      ]
     }
-  ]
+  ],
+  "outputs": {
+    "serverPublicEndpoint":{
+      "type": "string",
+      "value": "[concat('http://',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'/zab/')]"
+    },
+    "serverInternalIp":{
+      "type": "string",
+      "value": "[reference(variables('nicName')).ipConfigurations[0].properties.privateIPAddress]"
+    }
+  }
 }
 

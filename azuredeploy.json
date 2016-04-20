@@ -42,109 +42,12 @@
       }
     }
   },
-  "variables": {
-    "osType":{
-      "publisher":"Canonical",
-      "offer":"UbuntuServer",
-      "sku":"14.04.4-LTS",
-      "version":"latest"
-    },
-    "imageReference":"[variables('osType')]",
-    "location": "[resourceGroup().location]",
-    "OSDiskName": "[concat(parameters('monitorVmName'),'disk')]",
-    "nicName": "[concat(parameters('monitorVmName'),'nic')]",
-    "publicIPAddressName": "[concat(parameters('monitorVmName'),'ip')]",
-    "publicIPAddressType": "Dynamic",
-    "storageAccount": "[parameters('storageAccount')]",
-    "vmStorageAccountContainerName": "vhds",
-    "vmName": "[parameters('monitorVmName')]",
-    "vmSize": "Standard_DS2",
-    "subnetName": "[parameters('subnetName')]",
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
-    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
-  },
+  "variables": {},
   "resources": [
     {
-      "apiVersion": "2015-05-01-preview",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[variables('publicIPAddressName')]",
-      "location": "[variables('location')]",
-      "properties": {
-        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('monitorVmName')]"
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-05-01-preview",
-      "type": "Microsoft.Network/networkInterfaces",
-      "name": "[variables('nicName')]",
-      "location": "[variables('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
-      ],
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses/',variables('publicIPAddressName'))]"
-              },
-              "subnet": {
-                "id": "[variables('subnetRef')]"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "[variables('vmName')]",
-      "location": "[variables('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
-      ],
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "[variables('vmSize')]"
-        },
-        "osProfile": {
-          "computerName": "[concat(variables('vmName'))]",
-          "adminUsername": "[parameters('username')]",
-          "adminPassword": "[parameters('password')]"
-        },
-        "storageProfile": {
-          "osDisk": {
-            "vhd": {
-              "uri": "[concat('http://',variables('storageAccount'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
-            },
-            "name": "osdisk",
-            "caching": "ReadWrite",
-            "createOption": "FromImage"
-          },
-          "imageReference":"[variables('imageReference')]"
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName')))]"
-            }
-          ]
-        }
-      }
-    },
-    {
-     "apiVersion": "2015-01-01", 
-     "name": "configMonitoringServer", 
+     "apiVersion": "2015-01-01",
+     "name": "configMonitoringServerVM",
      "type": "Microsoft.Resources/deployments",
-     "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
-      ],
      "properties": { 
        "mode": "Incremental", 
        "templateLink": {
@@ -152,9 +55,14 @@
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": { 
-          "vmName":{"value": "[variables('vmName')]"} 
-       } 
-     } 
+          "monitorVmName":      {"value": "[parameters('monitorVmName')]"},
+          "storageAccount":     {"value": "[parameters('storageAccount')]"},
+          "virtualNetworkName": {"value": "[parameters('virtualNetworkName')]"},
+          "subnetName":         {"value": "[parameters('subnetName')]"},
+          "username":           {"value": "[parameters('username')]"},
+          "password":           {"value": "[parameters('password')]"}
+       }
+     }
     },
     {
      "apiVersion": "2015-01-01", 
@@ -172,7 +80,7 @@
        "parameters": { 
           "virtualNetworkName":{"value": "[parameters('virtualNetworkName')]"},
           "subnetName":{"value": "[parameters('subnetName')]"},
-          "serverIp": {"value": "[reference(variables('nicName')).ipConfigurations[0].properties.privateIPAddress]"}
+          "serverIp": {"value": "[reference('configMonitoringServerVM').outputs.serverInternalIp.value]"}
        } 
      } 
     }
@@ -180,12 +88,13 @@
   "outputs": {
     "Monitoring server public endpoint":{
       "type": "string",
-      "value": "[concat('http://',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'/zab/')]"
+      "value": "[reference('configMonitoringServerVM').outputs.serverPublicEndpoint.value]"
     },
     "Monitoring server internal IP":{
       "type": "string",
-      "value": "[reference(variables('nicName')).ipConfigurations[0].properties.privateIPAddress]"
+      "value": "[reference('configMonitoringServerVM').outputs.serverInternalIp.value]"
     }
   }
 }
+
 
