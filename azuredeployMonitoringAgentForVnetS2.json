@@ -7,6 +7,12 @@
       "metadata": {
         "description": "ipConfigurations info."
       }
+    },
+    "serverIp":{
+        "type": "string",
+        "metadata": {
+          "description": "server ip."
+        }
     }
   },
   "variables": {
@@ -30,7 +36,7 @@
        }, 
        "parameters": {
           "vmNames":{"value": ["[replace(reference(concat(variables('nics')[copyIndex()].id, '/../../'), '2016-03-30').virtualMachine.id, variables('vmidPrefix'),'')]"] },
-          "serverIp":{"value": "192.168.5.6"}
+          "serverIp":{"value": "[parameters('serverIp')]"}
        }
       }
     }
