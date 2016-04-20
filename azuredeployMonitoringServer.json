@@ -9,12 +9,15 @@
       }
     }
   },
+  "variables": {
+      "location": "[resourceGroup().location]"
+  },
   "resources": [
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmName'),'/configMonitoring')]",
-      "location": "Southeast Asia", 
+      "location": "[variables('location')]",
       "properties": {
             "publisher": "Microsoft.OSTCExtensions",
             "type": "CustomScriptForLinux",

@@ -161,7 +161,7 @@
      "name": "configMonitoringAgentsForVnet", 
      "type": "Microsoft.Resources/deployments",
      "dependsOn": [
-        "[reference('configMonitoringServer')]"
+        "configMonitoringServer"
       ],
      "properties": { 
        "mode": "Incremental", 
