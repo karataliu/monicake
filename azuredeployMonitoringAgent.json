@@ -20,7 +20,7 @@
   },
   "resources": [
     {
-      "name": "[concat(parameters('vmNames')[copyIndex()],'/configMonitoringAgent')]",
+      "name": "[concat(parameters('vmNames')[copyIndex()],'/configMonitoring')]",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "copy": {
          "name": "vmCopy",
