@@ -57,7 +57,7 @@
        }, 
        "parameters": {
           "ipConfigurations":{"value": "[reference('GetIpsForVnet').outputs.data.value]"},
-          "serverIp": {"value": "parameters('serverIp')"}
+          "serverIp": {"value": "[parameters('serverIp')]"}
        }
      } 
     }
