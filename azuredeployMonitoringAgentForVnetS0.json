@@ -8,22 +8,29 @@
         "description": "vnet name."
       },
       "defaultValue": "myvnet"
+    },
+    "subnetName":{
+      "type": "string",
+      "metadata": {
+        "description": "subnet name."
+      },
+      "defaultValue": "Subnet"
     }
   },
   "variables": {
-    "subnetName": "Subnet",
+    "subnetName": "[variables('subnetName')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
   },
   "resources": [
     {
      "apiVersion": "2015-01-01", 
-     "name": "genips", 
+     "name": "GetIpsForVnet", 
      "type": "Microsoft.Resources/deployments",
      "properties": { 
        "mode": "Incremental", 
        "templateLink": {
-          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployVnetToIps.json",
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgentForVnetS1.json",
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": {
@@ -34,23 +41,23 @@
     },
     {
      "apiVersion": "2015-01-01", 
-     "name": "ips2vms", 
+     "name": "InstallFromIps", 
      "type": "Microsoft.Resources/deployments",
      "properties": { 
        "mode": "Incremental", 
        "templateLink": {
-          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/Ips2Vms.json",
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgentForVnetS2.json",
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": {
-          "ipConfigurations":{"value": "[reference('genips').outputs.data.value]"}
+          "ipConfigurations":{"value": "[reference('GetIpsForVnet').outputs.data.value]"}
        }
      } 
     }
   ],
   "outputs": {
-    "ha":{
-      "value": "[reference('genips').outputs.data.value]",
+    "Ips":{
+      "value": "[reference('GetIpsForVnet').outputs.data.value]",
       "type": "array"
     }
   }

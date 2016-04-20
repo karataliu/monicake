@@ -17,8 +17,7 @@
       "defaultValue": "Subnet"
     }
   },
-  "resources": [
-  ],
+  "resources": [],
  "outputs": {
     "data": { 
         "value": "[reference(concat('Microsoft.Network/virtualnetworks/', parameters('vnetName'), '/subnets/', parameters('subnetName')), '2016-03-30').ipConfigurations]",
