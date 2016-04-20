@@ -161,7 +161,7 @@
      "name": "configMonitoringAgentsForVnet", 
      "type": "Microsoft.Resources/deployments",
      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+        "[reference('configMonitoringServer')]"
       ],
      "properties": { 
        "mode": "Incremental", 
