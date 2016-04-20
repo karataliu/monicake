@@ -21,6 +21,13 @@
       },
       "defaultValue": "myvnet"
     },
+    "subnetName":{
+      "type": "string",
+      "metadata": {
+        "description": "subnet name."
+      },
+      "defaultValue": "Subnet"
+    },
     "username":{
       "type": "string",
       "metadata": {
@@ -52,7 +59,7 @@
     "vmStorageAccountContainerName": "vhds",
     "vmName": "[parameters('monitorVmName')]",
     "vmSize": "Standard_DS2",
-    "subnetName": "Subnet",
+    "subnetName": "[parameters('subnetName')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
   },
@@ -146,6 +153,25 @@
        }, 
        "parameters": { 
           "vmName":{"value": "[variables('vmName')]"} 
+       } 
+     } 
+    },
+    {
+     "apiVersion": "2015-01-01", 
+     "name": "nestedConfigMonitoringAgentsForVnet", 
+     "type": "Microsoft.Resources/deployments",
+     "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+      ],
+     "properties": { 
+       "mode": "Incremental", 
+       "templateLink": {
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgentForVnetS0.json",
+          "contentVersion": "1.0.0.0"
+       }, 
+       "parameters": { 
+          "virtualNetworkName":{"value": "[parameters('virtualNetworkName')]"},
+          "subnetName":{"value": "[parameters('subnetName')]"}
        } 
      } 
     }
