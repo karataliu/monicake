@@ -39,27 +39,11 @@
      "properties": { 
        "mode": "Incremental", 
        "templateLink": {
-          "uri": "[concat('http://23.97.61.205/cgi-bin/ipc2vm?cou=',length(reference('genips').outputs.data.value))]",
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/Ips2Vms.json",
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": {
           "ipConfigurations":{"value": "[reference('genips').outputs.data.value]"}
-       }
-     } 
-    },
-    {
-     "apiVersion": "2015-01-01", 
-     "name": "vmsDeploy", 
-     "type": "Microsoft.Resources/deployments",
-     "properties": { 
-       "mode": "Incremental", 
-       "templateLink": {
-          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgent.json",
-          "contentVersion": "1.0.0.0"
-       }, 
-       "parameters": {
-          "vmNames":{"value": "[reference('ips2vms').outputs.data.value]"},
-          "serverIp":{"value": "192.168.5.6"}
        }
      } 
     }

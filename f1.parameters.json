@@ -1,0 +1,6 @@
+{
+  "ipConfigurations": {
+    "value": [{"id":"/subscriptions/c4528d9e-c99a-48bb-b12d-fde2176a43b8/resourceGroups/doliuzt17/providers/Microsoft.Network/networkInterfaces/doliuzt17nic1/ipConfigurations/ipconfig1"},{"id":"/subscriptions/c4528d9e-c99a-48bb-b12d-fde2176a43b8/resourceGroups/doliuzt17/providers/Microsoft.Network/networkInterfaces/doliuzt17nic3/ipConfigurations/ipconfig1"},{"id":"/subscriptions/c4528d9e-c99a-48bb-b12d-fde2176a43b8/resourceGroups/doliuzt17/providers/Microsoft.Network/networkInterfaces/doliuzt17nic2/ipConfigurations/ipconfig1"}]
+  }
+}
+
