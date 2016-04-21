@@ -84,6 +84,6 @@ my $json = <<"EOM";
 {"vmNames":{"value":[\"$vmstr\"]},"serverIp":{"value":"$serverIp"}}
 EOM
 
-system("azure group deployment create $resourceGroup -f ../azuredeployMonitoringAgent.json -p '$json' -n configMonitoringAgents");
+system("azure group deployment create $resourceGroup -f ../azuredeployMonitoringAgentByVms.json -p '$json' -n configMonitoringAgents");
 
 say "Done. Please visitor poprtal on: $endpoint";
