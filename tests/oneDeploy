@@ -24,7 +24,7 @@ if (@ARGV < 1){
 my $resourceGroup  = shift;
 
 my $ret = 0;
-$ret = system("azure group deployment create $resourceGroup -f ../azuredeploy.json -n configMonitoringVM |tee /tmp/onedep.log ");
+$ret = system("azure group deployment create $resourceGroup -f ../azuredeployMonitoringServer.json -n configMonitoringVM |tee /tmp/onedep.log ");
 
 if($ret){
     say "deploy monitor vm failed";
@@ -39,8 +39,8 @@ my $endpoint;
 my $serverIp;
 my $monitorVm;
 foreach (@output){
-    $endpoint = $1 if (/server public endpoint\s*String\s*(\S+)/);
-    $serverIp = $1 if (/server internal IP\s*String\s*(\S+)/);
+    $endpoint = $1 if (/serverPublicEndpoint\s*String\s*(\S+)/);
+    $serverIp = $1 if (/serverInternalIp\s*String\s*(\S+)/);
     $monitorVm = $1 if (/monitorVmName\s*String\s*(\S+)/);
 }
 

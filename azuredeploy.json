@@ -69,7 +69,7 @@
      "name": "configMonitoringAgentsForVnet", 
      "type": "Microsoft.Resources/deployments",
      "dependsOn": [
-        "configMonitoringServer"
+        "configMonitoringServerVM"
       ],
      "properties": { 
        "mode": "Incremental", 
