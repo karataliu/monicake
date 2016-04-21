@@ -13,6 +13,13 @@
         "metadata": {
           "description": "server ip."
         }
+    },
+    "subdepPrefix":{
+        "type": "string",
+        "metadata": {
+          "description": "server ip."
+        },
+        "defaultValue": "subConfigMonitoringAgent-"
     }
   },
   "variables": {
@@ -21,7 +28,7 @@
   },
   "resources": [
     {
-      "name": "[concat('subdep', copyIndex())]",
+      "name": "[concat(parameters('subdepPrefix'), copyIndex())]",
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
       "copy": {

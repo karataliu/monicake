@@ -2,7 +2,7 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "vnetName":{
+    "virtualNetworkName":{
       "type": "string",
       "metadata": {
         "description": "vnet name."
@@ -25,13 +25,13 @@
   },
   "variables": {
     "subnetName": "[parameters('subnetName')]",
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnetName'))]",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
   },
   "resources": [
     {
      "apiVersion": "2015-01-01", 
-     "name": "ConfigByIps", 
+     "name": "ConfigMonitoringAgentByIps", 
      "type": "Microsoft.Resources/deployments",
      "properties": { 
        "mode": "Incremental", 
@@ -40,7 +40,7 @@
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": {
-          "ipConfigurations":{"value": "[reference(concat('Microsoft.Network/virtualnetworks/', parameters('vnetName'), '/subnets/', parameters('subnetName')), '2016-03-30').ipConfigurations]"},
+          "ipConfigurations":{"value": "[reference(concat('Microsoft.Network/virtualnetworks/', parameters('virtualNetworkName'), '/subnets/', parameters('subnetName')), '2016-03-30').ipConfigurations]"},
           "serverIp": {"value": "[parameters('serverIp')]"}
        }
      } 
