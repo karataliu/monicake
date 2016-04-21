@@ -74,7 +74,7 @@
      "properties": { 
        "mode": "Incremental", 
        "templateLink": {
-          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgentForVnetS0.json",
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgentByVnet.json",
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": { 

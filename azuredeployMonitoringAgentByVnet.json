@@ -31,12 +31,12 @@
   "resources": [
     {
      "apiVersion": "2015-01-01", 
-     "name": "InstallFromIps", 
+     "name": "ConfigByIps", 
      "type": "Microsoft.Resources/deployments",
      "properties": { 
        "mode": "Incremental", 
        "templateLink": {
-          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgentForVnetS2.json",
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgentByIps.json",
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": {
