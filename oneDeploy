@@ -24,7 +24,7 @@ if (@ARGV < 1){
 my $resourceGroup  = shift;
 
 my $ret = 0;
-$ret = system("azure group deployment create $resourceGroup -f ../azuredeployMonitoringServer.json -n configMonitoringVM |tee /tmp/onedep.log ");
+$ret = system("azure group deployment create $resourceGroup -f ./azuredeployMonitoringServer.json -n configMonitoringVM |tee /tmp/onedep.log ");
 
 if($ret){
     say "deploy monitor vm failed";
@@ -84,6 +84,6 @@ my $json = <<"EOM";
 {"vmNames":{"value":[\"$vmstr\"]},"serverIp":{"value":"$serverIp"}}
 EOM
 
-system("azure group deployment create $resourceGroup -f ../azuredeployMonitoringAgentByVms.json -p '$json' -n configMonitoringAgents");
+system("azure group deployment create $resourceGroup -f ./azuredeployMonitoringAgentByVms.json -p '$json' -n configMonitoringAgents");
 
 say "Done. Please visitor poprtal on: $endpoint";
