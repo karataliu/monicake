@@ -45,12 +45,6 @@
        }
      } 
     }
-  ],
-  "outputs": {
-    "Ips":{
-      "value": "[reference('GetIpsForVnet').outputs.data.value]",
-      "type": "array"
-    }
-  }
+  ]
 }
 
