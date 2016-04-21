@@ -78,7 +78,7 @@
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": { 
-          "virtualNetworkName":{"value": "[parameters('virtualNetworkName')]"},
+          "vnetName":{"value": "[parameters('virtualNetworkName')]"},
           "subnetName":{"value": "[parameters('subnetName')]"},
           "serverIp": {"value": "[reference('configMonitoringServerVM').outputs.serverInternalIp.value]"}
        } 
