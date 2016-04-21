@@ -1,0 +1,66 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vnetName":{
+      "type": "string",
+      "metadata": {
+        "description": "vnet name."
+      },
+      "defaultValue": "myvnet"
+    },
+    "subnetName":{
+      "type": "string",
+      "metadata": {
+        "description": "subnet name."
+      },
+      "defaultValue": "Subnet"
+    },
+    "serverIp":{
+        "type": "string",
+        "metadata": {
+          "description": "server ip."
+        }
+    }
+  },
+  "variables": {
+    "subnetName": "[parameters('subnetName')]",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnetName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
+  },
+  "resources": [
+    {
+     "apiVersion": "2015-01-01", 
+     "name": "InstallFromIps", 
+     "type": "Microsoft.Resources/deployments",
+     "properties": { 
+       "mode": "Incremental", 
+       "templateLink": {
+          "uri": "https://raw.githubusercontent.com/karataliu/kar-azure-template/master/vnet2vms.json",
+          "contentVersion": "1.0.0.0"
+       }, 
+       "parameters": {
+          "vnetName": {"value": "[parameters('vnetName')]"},
+          "subnetName": {"value": "[parameters('subnetName')]"}
+       }
+     }
+    },
+    {
+      "name": "nonsubdeps",
+      "apiVersion": "2015-01-01",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+       "mode": "Incremental",
+       "templateLink": {
+          "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgent.json",
+          "contentVersion": "1.0.0.0"
+       }, 
+       "parameters": {
+          "vmNames":{"value": "[reference('InstallFromIps').outputs.Vms.value]" },
+          "serverIp":{"value": "[parameters('serverIp')]"}
+       }
+      }
+    }
+  ]
+}
+
