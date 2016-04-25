@@ -43,14 +43,18 @@
     }
   },
   "variables": {
+    "apiSuffixes": [".core.windows.net", ".core.chinacloudapi.cn"],
+    "location": "[tolower(resourceGroup().location)]",
+    "locationTempSub": "[replace(variables('location'),'china','1234')]",
+    "apiSuffix": "[variables('apiSuffixes')[sub(length(variables('location')),length(variables('locationTempSub')))]]",
+    "blobApiSuffix": "[concat('.blob',variables('apiSuffix'))]",
     "osType":{
       "publisher":"Canonical",
       "offer":"UbuntuServer",
-      "sku":"14.04.4-LTS",
+      "sku":"14.04.3-LTS",
       "version":"latest"
     },
     "imageReference":"[variables('osType')]",
-    "location": "[resourceGroup().location]",
     "OSDiskName": "[concat(parameters('monitorVmName'),'disk')]",
     "nicName": "[concat(parameters('monitorVmName'),'nic')]",
     "publicIPAddressName": "[concat(parameters('monitorVmName'),'ip')]",
@@ -58,7 +62,7 @@
     "storageAccount": "[parameters('storageAccount')]",
     "vmStorageAccountContainerName": "vhds",
     "vmName": "[parameters('monitorVmName')]",
-    "vmSize": "Standard_DS2",
+    "vmSize": "Standard_A3",
     "subnetName": "[parameters('subnetName')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
@@ -121,7 +125,7 @@
         "storageProfile": {
           "osDisk": {
             "vhd": {
-              "uri": "[concat('http://',variables('storageAccount'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
+              "uri": "[concat('http://',variables('storageAccount'), parameters('blobApiSuffix'),'/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
             },
             "name": "osdisk",
             "caching": "ReadWrite",
