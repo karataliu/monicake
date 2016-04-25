@@ -125,7 +125,7 @@
         "storageProfile": {
           "osDisk": {
             "vhd": {
-              "uri": "[concat('http://',variables('storageAccount'), parameters('blobApiSuffix'),'/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
+              "uri": "[concat('http://',variables('storageAccount'), variables('blobApiSuffix'),'/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
             },
             "name": "osdisk",
             "caching": "ReadWrite",
