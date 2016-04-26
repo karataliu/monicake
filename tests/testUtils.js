@@ -32,11 +32,5 @@ exports.createTestResourceGroup = function(name){
 
 exports.listTestResourceGroups = function(callback){
     // console.log("Listing resource groups with tag " + conf.tagName);
-    client.resourceGroups.list({"filter":"tagname eq '" + conf.tagName + "'"}, function(err, list){
-        if(callback){
-            callback(err, list);
-        }else {
-            console(err, list);
-        }
-    });
+    client.resourceGroups.list({"filter":"tagname eq '" + conf.tagName + "'"}, callback);
 };

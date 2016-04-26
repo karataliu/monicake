@@ -1,11 +1,9 @@
-var testUtils = require('./testUtils');
+var testUtils   = require('./testUtils');
+var Promise     = require('promise');
 
-testUtils.listTestResourceGroups(function(err, list){
-    if(err){
-        return;
-    }
+var listTestResourceGroups = Promise.denodeify(testUtils.listTestResourceGroups);
 
-    for(var rg in list){
+listTestResourceGroups().done(function(list){
+    for(var rg in list)
         console.log("azure group delete '%s' -q >/dev/null &",list[rg].name);
-    }
 });
