@@ -1,3 +1,5 @@
 {
-    "location": "southeastasia"
+    "location": "southeastasia",
+    "prefix": "doliuMoniTest",
+    "tagName": "doliuMoniTest"
 }

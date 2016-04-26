@@ -1,6 +1,4 @@
-var testUtil=require('./testUtil');
-
-testUtil.CreateRG();
+var testUtil=require('./testUtils');
 
 var assert = require('chai').assert;
 
