@@ -2,6 +2,13 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "prefix": {
+      "type": "string",
+      "metadata": {
+        "description": "prefix str."
+      },
+      "defaultValue": ""
+    },
     "adminPublicKey": {
       "type": "string",
       "metadata": {
@@ -17,7 +24,7 @@
     }
   },
   "variables": {
-    "prefix": "[uniqueString(resourceGroup().id)]",
+    "prefix": "[concat(parameters('prefix'),uniqueString(resourceGroup().id))]",
     "apiSuffixes": [".core.windows.net", ".core.chinacloudapi.cn"],
     "location": "[tolower(resourceGroup().location)]",
     "locationTempSub": "[replace(variables('location'),'china','1234')]",

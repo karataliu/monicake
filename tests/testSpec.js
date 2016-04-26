@@ -1,11 +1,13 @@
-var testUtil=require('./testUtils');
-
-var assert = require('chai').assert;
+var testUtil  = require('./testUtils');
+var assert    = require('chai').assert;
 
 describe('Group', function() {
-    it('Get', function (done) {
-      assert.equal(1, 1);
-      done();
+    it('CreateEnv', function (done) {
+      this.timeout(0);
+      testUtil.createTestEnv(function(err, res){
+        console.log(res);
+        done();
+      });
   });
 });
 

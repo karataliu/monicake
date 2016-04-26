@@ -1,4 +1,4 @@
-var Promise     = require('promise');
+//var Promise     = require('promise');
 
 function ta(callback){
     setTimeout(function(){
@@ -7,14 +7,22 @@ function ta(callback){
     }, 500);
 }
 
+//tb = Promise.denodeify(ta);
+tb = function(){
+    return new Promise(function(ful, err){
+        ful(9);
+    });
+};
 
-exports.ta=ta;
-tb = Promise.denodeify(ta);
+function f1(a){ console.log("c3 "+a); return 99932;}
 
-d = tb().catch(function(b){
-    console.log("c4 "+b);
-}).then(function(a){ console.log("c3 "+a); return 99932;});
+function f2(canshu){
+    console.log("c5", canshu);
+    return tb();
+}
 
-console.log(d)
+d = tb().catch(function(b){console.log("c4 "+b);}).then(f2);
 
-d.done(console.log);
+console.log(d);
+
+//d.done(console.log);

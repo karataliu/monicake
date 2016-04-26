@@ -3,10 +3,10 @@
 var conf        = require('./conf.json');
 var utils       = require('azure-cli/lib/util/utils');
 var profile     = require("azure-cli/lib/util/profile");
-var Promise     = require('promise');
+var Promise     = require('bluebird');
 var client      = utils.createResourceClient(profile.current.getSubscription());
 
-exports.createTestResourceGroup = function(){
+function createTestResourceGroup(){
     var name = new Date().toISOString().replace(new RegExp(':','g'),'-');
     var rgName  = conf.prefix + name;
     var tags    = {};
@@ -23,8 +23,8 @@ exports.createTestResourceGroup = function(){
         if(err) reject(err);
         else fulfill(res);
       });
-    }).then(function(res){ return res.name });
-};
+    }).then(function(res){ return res.name; });
+}
 
 exports.listTestResourceGroups = function(){
   return new Promise(function(fulfill, reject){
@@ -35,25 +35,32 @@ exports.listTestResourceGroups = function(){
   });
 };
 
-exports.createDeployment = function(rgName){
-    var template = require('./templates/deployCluster.json');
-    var templateParameters = require('./templates/deployCluster.parameters.json').parameters;
+function createDeployment(rgName, template, templateParameters){
+  var parameters = {
+      "properties": {
+          "template" : template,
+          "parameters":templateParameters,
+          "mode": "Incremental"
+      }
+  };
 
-    var parameters = {
-        "properties": {
-            "template" : template,
-            "parameters":templateParameters,
-            "mode": "Incremental"
-        }
-    };
-
-    client.deployments.createOrUpdate(rgName, 'testDeployment', parameters, function(err, data){
-        console.log(err, data);
+  console.log("Creating deployment on resource group %s.", rgName);
+  return new Promise(function(fulfill, reject){
+    client.deployments.createOrUpdate(rgName, 'testDeployment', parameters, function(err, res){
+      if(err) reject(err);
+      else fulfill(res);
     });
-
-    return rgName;
+  });
 }
 
-exports.createTestEnv = function(){
-  //createTestResourceGroup().then(createDeployment);
+function createTestEnvDeployment(rgName){
+  var template = require('./templates/deployCluster.json');
+  var templateParameters = require('./templates/deployCluster.parameters.json').parameters;
+  templateParameters.prefix = {"value": conf.prefix};
+  return createDeployment(rgName, template, templateParameters);
 }
+
+exports.createTestEnv = function(callback){
+  return createTestResourceGroup().then(createTestEnvDeployment).nodeify(callback);
+};
+
