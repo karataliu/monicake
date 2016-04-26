@@ -5,13 +5,6 @@ var utils       = require('azure-cli/lib/util/utils');
 var profile     = require("azure-cli/lib/util/profile");
 var client      = utils.createResourceClient(profile.current.getSubscription());
 
-
-exports.getResourceGroup = function(name, callback){
-    client.resourceGroups.get(name, function(err, ca){
-        
-    })
-}
-
 exports.createTestResourceGroup = function(name){
     if (name === undefined){
         // generate from current time.
@@ -35,7 +28,7 @@ exports.createTestResourceGroup = function(name){
         
         console.log(resourceGroup);
     });
-}
+};
 
 exports.listTestResourceGroups = function(callback){
     // console.log("Listing resource groups with tag " + conf.tagName);
@@ -46,4 +39,4 @@ exports.listTestResourceGroups = function(callback){
             console(err, list);
         }
     });
-}
+};
