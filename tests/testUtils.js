@@ -7,7 +7,7 @@ var Promise     = require('bluebird');
 var client      = utils.createResourceClient(profile.current.getSubscription());
 
 function createTestResourceGroup(){
-    var name = new Date().toISOString().replace(new RegExp(':','g'),'-');
+    var name    = new Date().toISOString().replace(new RegExp(':','g'),'-');
     var rgName  = conf.prefix + name;
     var tags    = {};
     tags[conf.tagName] = '1';
@@ -25,15 +25,6 @@ function createTestResourceGroup(){
       });
     }).then(function(res){ return res.name; });
 }
-
-exports.listTestResourceGroups = function(){
-  return new Promise(function(fulfill, reject){
-    client.resourceGroups.list({"filter":"tagname eq '" + conf.tagName + "'"}, function(err, res){
-      if(err) reject(err);
-      else fulfill(res);
-    });
-  });
-};
 
 function createDeployment(rgName, template, templateParameters){
   var parameters = {
@@ -60,7 +51,15 @@ function createTestEnvDeployment(rgName){
   return createDeployment(rgName, template, templateParameters);
 }
 
-exports.createTestEnv = function(callback){
-  return createTestResourceGroup().then(createTestEnvDeployment).nodeify(callback);
+exports.createTestEnv = function(){
+  return createTestResourceGroup().then(createTestEnvDeployment);
 };
 
+exports.listTestResourceGroups = function(){
+  return new Promise(function(fulfill, reject){
+    client.resourceGroups.list({"filter":"tagname eq '" + conf.tagName + "'"}, function(err, res){
+      if(err) reject(err);
+      else fulfill(res);
+    });
+  });
+};
