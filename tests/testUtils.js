@@ -3,14 +3,11 @@
 var conf        = require('./conf.json');
 var utils       = require('azure-cli/lib/util/utils');
 var profile     = require("azure-cli/lib/util/profile");
+var Promise     = require('promise');
 var client      = utils.createResourceClient(profile.current.getSubscription());
 
-exports.createTestResourceGroup = function(name){
-    if (name === undefined){
-        // generate from current time.
-        name = new Date().toISOString().replace(new RegExp(':','g'),'-');
-    }
-
+exports.createTestResourceGroup = function(){
+    var name = new Date().toISOString().replace(new RegExp(':','g'),'-');
     var rgName  = conf.prefix + name;
     var tags    = {};
     tags[conf.tagName] = '1';
@@ -21,16 +18,42 @@ exports.createTestResourceGroup = function(name){
     };
 
     console.log("Creating resource group %s at location %s.", rgName, conf.location);
-    client.resourceGroups.createOrUpdate(rgName, parameters, function(err, resourceGroup){
-        if(err){
-            console.log(err);
-        }
-        
-        console.log(resourceGroup);
-    });
+    return new Promise(function(fulfill, reject){
+      client.resourceGroups.createOrUpdate(rgName, parameters, function(err, res){
+        if(err) reject(err);
+        else fulfill(res);
+      });
+    }).then(function(res){ return res.name });
 };
 
-exports.listTestResourceGroups = function(callback){
-    // console.log("Listing resource groups with tag " + conf.tagName);
-    client.resourceGroups.list({"filter":"tagname eq '" + conf.tagName + "'"}, callback);
+exports.listTestResourceGroups = function(){
+  return new Promise(function(fulfill, reject){
+    client.resourceGroups.list({"filter":"tagname eq '" + conf.tagName + "'"}, function(err, res){
+      if(err) reject(err);
+      else fulfill(res);
+    });
+  });
 };
+
+exports.createDeployment = function(rgName){
+    var template = require('./templates/deployCluster.json');
+    var templateParameters = require('./templates/deployCluster.parameters.json').parameters;
+
+    var parameters = {
+        "properties": {
+            "template" : template,
+            "parameters":templateParameters,
+            "mode": "Incremental"
+        }
+    };
+
+    client.deployments.createOrUpdate(rgName, 'testDeployment', parameters, function(err, data){
+        console.log(err, data);
+    });
+
+    return rgName;
+}
+
+exports.createTestEnv = function(){
+  //createTestResourceGroup().then(createDeployment);
+}

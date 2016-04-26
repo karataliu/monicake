@@ -17,7 +17,7 @@
     }
   },
   "variables": {
-    "prefix": "[resourceGroup().name]",
+    "prefix": "[uniqueString(resourceGroup().id)]",
     "apiSuffixes": [".core.windows.net", ".core.chinacloudapi.cn"],
     "location": "[tolower(resourceGroup().location)]",
     "locationTempSub": "[replace(variables('location'),'china','1234')]",
