@@ -22,7 +22,9 @@ function createTestResourceGroup(){
         if(err) reject(err);
         else fulfill(res);
       });
-    }).then(function(res){ return res.name; });
+    }).then(function(res){ 
+      return res.name;
+    });
 }
 
 function createDeployment(rgName, template, templateParameters){
@@ -55,33 +57,21 @@ function createTestOutput(rgName){
   return createDeployment(rgName, template, {});
 }
 
-function createTestOutput1(){
-  return { id: '/subscriptions/c4528d9e-c99a-48bb-b12d-fde2176a43b8/resourceGroups/doliumt2016-04-26T10-20-04.255Z/providers/Microsoft.Resources/deployments/testDeployment',
-  name: 'testDeployment',
-  properties: 
-   { provisioningState: 'Succeeded',
-     correlationId: 'f23cde7b-1d93-4dd8-b876-c492b90466b8',
-     outputs: { prefix: {"value":2}, resourceGroup: {"value":3} },
-     providers: [],
-     dependencies: [],
-     parameters: {},
-     mode: 'Incremental' } };
-}
+exports.createDeployment = createDeployment;
 
-function createTestResourceGroup1()
-{
-  return Promise.resolve("doliumt2016-04-26T10-20-04.255Z");
-}
-
-exports.createTestEnv = function(){
-  //return createTestResourceGroup().then(createTestEnvDeployment).then(function(res){
-  return createTestResourceGroup1().then(createTestOutput1).then(function(res){
+exports.createTestEnv = function(mock){
+  if(mock){
+    return Promise.resolve(
+    { resourceGroup: 'doliumt2016-04-27T02-52-30.898Z',
+      prefix: 'doliumtzbsqqgfs4g432' });
+  }
+  
+  return createTestResourceGroup().then(createTestEnvDeployment).then(function(res){
     var outputs = res.properties.outputs;
-    var g1={
+    return {
       "resourceGroup" : outputs.resourceGroup.value,
       "prefix"        : outputs.prefix.value
     };
-    return Promise.resolve(g1);
   });
 };
 

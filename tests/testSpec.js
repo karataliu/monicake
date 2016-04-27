@@ -1,10 +1,8 @@
-var testUtil  = require('./testUtils');
+var conf      = require('./conf.json');
+var testUtils = require('./testUtils');
 var chai      = require("chai");
 var assert    = chai.assert;
 chai.use(require("chai-as-promised"));
-
-//var outputs = res.properties.outputs;
-//return createMonitoringServer(outputs.resourceGroup, outputs.prefix);
 
 function createMonitoringServer(rgName, prefix){
   var template = require('../azuredeployMonitoringServer.json');
@@ -26,23 +24,43 @@ function createMonitoringServer(rgName, prefix){
     }
   };
 
-  return createDeployment(rgName, template, templateParameters);
+  return testUtils.createDeployment(rgName, template, templateParameters)
+    .then(function(res){
+      var outputs = res.properties.outputs;
+      return {
+        "serverInternalIp"      : outputs.serverInternalIp.value,
+        "serverPublicEndpoint"  : outputs.serverPublicEndpoint.value
+      };
+    });
 }
 
-describe('Group', function() {
-    it('CreateEnv', function () {
-      this.timeout(1000*250);
-      var testEnv = testUtil.createTestEnv();
-      //testEnv.then(console.log);
-      //testEnv.then(function(dat){assert.equal('b1', dat.prefix);});
-      return Promise.all([
-        assert.isFulfilled(testEnv),
-        testEnv.then(function(dat){
-          assert(dat.prefix.toString().startsWith('2'), "not starts with expected");
-        }),
-        testEnv.then(console.log)
-      ]);
-    });
+describe('Steps Test', function() {
+  var resourceGroup;
+  var prefix;
+
+  it('CreateTestEnv', function () {
+    this.timeout(1000*250);
+    var t1 = assert.isFulfilled(testUtils.createTestEnv(1));
+    return Promise.all([
+      t1.then(console.log),
+      t1.then(function(dat){
+        resourceGroup = dat.resourceGroup;
+        prefix = dat.prefix;
+        assert(prefix.startsWith(conf.prefix), "prefix not starts with expected");
+        assert(resourceGroup.startsWith(conf.prefix), "rg not starts with expected");
+      })
+    ]);
+  });
+
+  it('CreateMonitoringServer', function () {
+    assert(prefix, "Prefix should not be empty");
+    assert(resourceGroup, "resourceGroup should not be empty");
+    this.timeout(1000*550);
+    var t1 = assert.isFulfilled(createMonitoringServer(resourceGroup, prefix));
+    return Promise.all([
+      t1.then(console.log)
+    ]);
+  });
 });
 
 xdescribe('Work', function() {
@@ -53,4 +71,5 @@ xdescribe('Work', function() {
         assert.equal(2,3);
       });
     });
+   // assert.equal(3,4);
 });
