@@ -62,7 +62,7 @@
     "storageAccount": "[parameters('storageAccount')]",
     "vmStorageAccountContainerName": "vhds",
     "vmName": "[parameters('monitorVmName')]",
-    "vmSize": "Standard_A3",
+    "vmSize": "Standard_DS2",
     "subnetName": "[parameters('subnetName')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"

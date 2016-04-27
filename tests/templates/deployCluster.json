@@ -50,8 +50,8 @@
     "storageAccount": "[concat(variables('prefix'),'sto')]",
     "vmStorageAccountContainerName": "vhds",
     "vmName": "[concat(variables('prefix'),'vm')]",
-    "vmSize": "Standard_A2",
-    "storageAccountType": "Standard_LRS",
+    "vmSize": "Standard_DS2",
+    "storageAccountType": "Premium_LRS",
     "VMCount": "[parameters('vmCount')]",
     "VMStart": 1,
     "adminUsername": "monicake"

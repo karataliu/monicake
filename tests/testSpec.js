@@ -5,7 +5,7 @@ var assert    = chai.assert;
 var phantom = require('phantom');
 chai.use(require("chai-as-promised"));
 
-describe('Step Test', function() {
+xdescribe('Step Test', function() {
   var resourceGroup;
   var prefix;
 
@@ -55,16 +55,93 @@ describe('Step Test', function() {
       t1.then(console.log),
       t1.then(function(list){
         assert.equal(list.length, conf.vmCount + 1);
-        expected = [prefix + "mon"];
-        for(var i = 1;i <= conf.vmCount;i++){
-          expected.push(prefix+"vm"+i);
-        }
-        assert.deepEqual(list.sort(), expected.sort());
+        assert.deepEqual(list.sort(), createExpectedVmList(prefix).sort());
       })
     ]);
-    
   });
 });
+
+describe('One Test', function() {
+  var serverPublicEndpoint;
+
+  it('CreateTestEnv', function () {
+    this.timeout(1000*550);
+    var t1 = assert.isFulfilled(testUtils.createTestEnv());
+    return Promise.all([
+      t1.then(console.log),
+      t1.then(function(dat){
+        resourceGroup = dat.resourceGroup;
+        prefix = dat.prefix;
+        assert(prefix.startsWith(conf.prefix), "prefix not starts with expected");
+        assert(resourceGroup.startsWith(conf.prefix), "rg not starts with expected");
+      })
+    ]);
+  });
+
+  it('CreateMonitoring', function () {
+    assert(prefix, "Prefix should not be empty");
+    assert(resourceGroup, "resourceGroup should not be empty");
+    this.timeout(1000*1050);
+    var t1 = assert.isFulfilled(createMonitoring(resourceGroup, prefix));
+    return Promise.all([
+      t1.then(console.log),
+      t1.then(function(dat){
+        serverPublicEndpoint = dat.serverPublicEndpoint;
+      })
+    ]);
+  });
+
+  it('VerifyPage', function(){
+    assert(serverPublicEndpoint, "serverPublicEndpoint should not be empty");
+    this.timeout(1000*20);
+    var t1 = assert.isFulfilled(getDiscoveredVms(serverPublicEndpoint));
+    return Promise.all([
+      t1.then(console.log),
+      t1.then(function(list){
+        assert.equal(list.length, conf.vmCount + 1);
+        assert.deepEqual(list.sort(), createExpectedVmList(prefix).sort());
+      })
+    ]);
+  });
+});
+
+function createExpectedVmList(prefix){
+  expected = [prefix + "mon"];
+  for(var i = 1;i <= conf.vmCount;i++){
+    expected.push(prefix+"vm"+i);
+  }
+
+  return expected;
+}
+
+function createMonitoring(rgName, prefix){
+  var template = require('../azuredeploy.json');
+  var templateParameters = {
+    "monitorVmName": {
+      "value": prefix + "mon"
+    },
+    "storageAccount": {
+      "value": prefix + "sto"
+    },
+    "virtualNetworkName":{
+      "value": prefix + "vnet"
+    },
+    "subnetName":{
+      "value": "default"
+    },
+    "password":{
+      "value": "testPass&"
+    }
+  };
+
+  return testUtils.createDeployment(rgName, template, templateParameters)
+    .then(function(res){
+      var outputs = res.properties.outputs;
+      return {
+        "serverPublicEndpoint"  : outputs["Monitoring server public endpoint"].value
+      };
+    });
+}
 
 
 function createMonitoringServer(rgName, prefix, mock){
