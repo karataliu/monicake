@@ -2,7 +2,70 @@ var conf      = require('./conf.json');
 var testUtils = require('./testUtils');
 var chai      = require("chai");
 var assert    = chai.assert;
+var phantom = require('phantom');
 chai.use(require("chai-as-promised"));
+
+describe('Step Test', function() {
+  var resourceGroup;
+  var prefix;
+
+  var serverInternalIp;
+  var serverPublicEndpoint;
+
+  it('CreateTestEnv', function () {
+    this.timeout(1000*550);
+    var t1 = assert.isFulfilled(testUtils.createTestEnv());
+    return Promise.all([
+      t1.then(console.log),
+      t1.then(function(dat){
+        resourceGroup = dat.resourceGroup;
+        prefix = dat.prefix;
+        assert(prefix.startsWith(conf.prefix), "prefix not starts with expected");
+        assert(resourceGroup.startsWith(conf.prefix), "rg not starts with expected");
+      })
+    ]);
+  });
+
+  it('CreateMonitoringServer', function () {
+    assert(prefix, "Prefix should not be empty");
+    assert(resourceGroup, "resourceGroup should not be empty");
+    this.timeout(1000*650);
+    var t1 = assert.isFulfilled(createMonitoringServer(resourceGroup, prefix));
+    return Promise.all([
+      t1.then(console.log),
+      t1.then(function(dat){
+        serverInternalIp = dat.serverInternalIp;
+        serverPublicEndpoint = dat.serverPublicEndpoint;
+      })
+    ]);
+  });
+
+  it('CreateMonitoringAgents', function () {
+    assert(serverInternalIp, "serverInternalIp should not be empty");
+    this.timeout(1000*550);
+    var t1 = assert.isFulfilled(createMonitoringAgentsByVnet(resourceGroup, prefix, serverInternalIp));
+    return t1;
+  });
+
+  it('VerifyPage', function(){
+    assert(serverPublicEndpoint, "serverPublicEndpoint should not be empty");
+    this.timeout(1000*20);
+    var t1 = assert.isFulfilled(getDiscoveredVms(serverPublicEndpoint));
+    return Promise.all([
+      t1.then(console.log),
+      t1.then(function(list){
+        assert.equal(list.length, conf.vmCount + 1);
+        expected = [prefix + "mon"];
+        for(var i = 1;i <= conf.vmCount;i++){
+          expected.push(prefix+"vm"+i);
+        }
+        assert.deepEqual(list.sort(), expected.sort());
+      })
+    ]);
+    
+  });
+});
+
 
 function createMonitoringServer(rgName, prefix, mock){
   if(mock)
@@ -63,61 +126,48 @@ function createMonitoringAgentsByVnet(rgName, prefix, serverIp, mock){
     });
 }
 
-describe('Step Test', function() {
-  var resourceGroup;
-  var prefix;
+function delay(time) {
+  return new Promise(function (fulfill) {
+    setTimeout(fulfill, time);
+  });
+}
 
-  var serverInternalIp;
-  var serverPublicEndpoint;
-
-  it('CreateTestEnv', function () {
-    this.timeout(1000*250);
-    var t1 = assert.isFulfilled(testUtils.createTestEnv(1));
-    return Promise.all([
-      t1.then(console.log),
-      t1.then(function(dat){
-        resourceGroup = dat.resourceGroup;
-        prefix = dat.prefix;
-        assert(prefix.startsWith(conf.prefix), "prefix not starts with expected");
-        assert(resourceGroup.startsWith(conf.prefix), "rg not starts with expected");
+function getDiscoveredVms(serverEndPoint, mock){
+  if(mock)
+    return Promise.resolve([ 'doliumtmolvecaqnwzmsvm1', 'doliumtmolvecaqnwzmsmon' ]);
+  var page = null;
+  var phInstance = null;
+  return phantom.create()
+      .then(function(instance) {
+          phInstance = instance;
+          return instance.createPage();
       })
-    ]);
-  });
-
-  it('CreateMonitoringServer', function () {
-    assert(prefix, "Prefix should not be empty");
-    assert(resourceGroup, "resourceGroup should not be empty");
-    this.timeout(1000*650);
-    var t1 = assert.isFulfilled(createMonitoringServer(resourceGroup, prefix,1));
-    return Promise.all([
-      t1.then(console.log),
-      t1.then(function(dat){
-        serverInternalIp = dat.serverInternalIp;
-        serverPublicEndpoint = dat.serverPublicEndpoint;
+      .then(function(pg) {
+          page = pg;
+          return page.open(serverEndPoint);
       })
-    ]);
-  });
-
-  it('CreateMonitoringAgents', function () {
-    assert(serverInternalIp, "serverInternalIp should not be empty");
-    assert(serverPublicEndpoint, "serverPublicEndpoint should not be empty");
-    this.timeout(1000*550);
-    var t1 = assert.isFulfilled(createMonitoringAgentsByVnet(resourceGroup, prefix, serverInternalIp,1));
-    return t1;
-  });
-
-  it('VerifyPage', function(){
-    
-  });
-});
-
-xdescribe('Work', function() {
-    it('a1', function () {
-      assert.equal(1,1);
-      //assert.equal(1,2);
-      it('b1',function(){
-        assert.equal(2,3);
-      });
-    });
-   // assert.equal(3,4);
-});
+      .then(function(status) {
+          if (status !== "success") 
+            throw 'page not loaded.';
+          return page.evaluate(function() {
+                document.querySelector("input[name='name']").value = "Admin";
+                document.querySelector("input[name='password']").value = "zabbix";
+                document.querySelector("#enter").click();
+          });
+      })
+      .then(function(){
+        return delay(3000);
+      })
+      .then(function(){
+            page.render('result.png');
+            return page.evaluate(function() {
+                var vms = [];
+                [].forEach.call(document.querySelectorAll('.link_menu'), function(span){vms.push(span.innerText);});
+                return vms;
+            });
+        })
+        .then(function(rt){
+              phInstance.exit();
+              return rt;
+        });
+}

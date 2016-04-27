@@ -49,6 +49,7 @@ function createTestEnvDeployment(rgName){
   var template = require('./templates/deployCluster.json');
   var templateParameters = require('./templates/deployCluster.parameters.json').parameters;
   templateParameters.prefix = {"value": conf.prefix};
+  templateParameters.vmCount = {"value": conf.vmCount};
   return createDeployment(rgName, template, templateParameters);
 }
 
@@ -62,8 +63,8 @@ exports.createDeployment = createDeployment;
 exports.createTestEnv = function(mock){
   if(mock){
     return Promise.resolve(
-    { resourceGroup: 'doliumt2016-04-27T02-52-30.898Z',
-      prefix: 'doliumtzbsqqgfs4g432' });
+    { resourceGroup: 'doliumt2016-0',
+      prefix: 'doliumtmolvecaqnwzms' });
   }
   
   return createTestResourceGroup().then(createTestEnvDeployment).then(function(res){

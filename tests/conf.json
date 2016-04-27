@@ -1,5 +1,6 @@
 {
-    "location": "southeastasia",
+    "location": "westus",
     "prefix": "doliumt",
-    "tagName": "doliuMoniTest"
+    "tagName": "doliuMoniTest",
+    "vmCount": 2
 }
