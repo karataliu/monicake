@@ -86,13 +86,9 @@
     }
   ],
   "outputs": {
-    "Monitoring server public endpoint":{
+    "serverPublicEndpoint":{
       "type": "string",
       "value": "[reference('configMonitoringServerVM').outputs.serverPublicEndpoint.value]"
-    },
-    "Monitoring server internal IP":{
-      "type": "string",
-      "value": "[reference('configMonitoringServerVM').outputs.serverInternalIp.value]"
     }
   }
 }

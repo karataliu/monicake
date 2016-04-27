@@ -63,8 +63,8 @@ exports.createDeployment = createDeployment;
 exports.createTestEnv = function(mock){
   if(mock){
     return Promise.resolve(
-    { resourceGroup: 'doliumt2016-0',
-      prefix: 'doliumtmolvecaqnwzms' });
+    { resourceGroup: 'doliumt2016-04-27T07-25-48.677Z',
+      prefix: 'doliumtubmy7hjb56flc' });
   }
   
   return createTestResourceGroup().then(createTestEnvDeployment).then(function(res){

@@ -5,7 +5,7 @@ var assert    = chai.assert;
 var phantom = require('phantom');
 chai.use(require("chai-as-promised"));
 
-xdescribe('Step Test', function() {
+describe('Step Test', function() {
   var resourceGroup;
   var prefix;
 
@@ -92,6 +92,7 @@ describe('One Test', function() {
   });
 
   it('VerifyPage', function(){
+    this.retries(2);
     assert(serverPublicEndpoint, "serverPublicEndpoint should not be empty");
     this.timeout(1000*20);
     var t1 = assert.isFulfilled(getDiscoveredVms(serverPublicEndpoint));
@@ -138,7 +139,7 @@ function createMonitoring(rgName, prefix){
     .then(function(res){
       var outputs = res.properties.outputs;
       return {
-        "serverPublicEndpoint"  : outputs["Monitoring server public endpoint"].value
+        "serverPublicEndpoint"  : outputs.serverPublicEndpoint.value
       };
     });
 }
