@@ -185,6 +185,16 @@
         }
       }
     }
-  ]
+  ],
+  "outputs": {
+    "prefix":{
+      "type": "string",
+      "value": "[variables('prefix')]"
+    },
+    "resourceGroup":{
+      "type": "string",
+      "value": "[resourceGroup().name]"
+    }
+  }
 }
 
