@@ -2,5 +2,6 @@
     "location": "westus",
     "prefix": "doliumt",
     "tagName": "doliuMoniTest",
-    "vmCount": 4
+    "vmCount": 2,
+    "adminPublicKey": ""
 }
