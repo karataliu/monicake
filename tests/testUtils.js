@@ -50,6 +50,7 @@ function createTestEnvDeployment(rgName){
   var templateParameters = require('./templates/deployCluster.parameters.json').parameters;
   templateParameters.prefix = {"value": conf.prefix};
   templateParameters.vmCount = {"value": conf.vmCount};
+  templateParameters.adminPublicKey = {"value": conf.adminPublicKey};
   return createDeployment(rgName, template, templateParameters);
 }
 
