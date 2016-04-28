@@ -238,7 +238,7 @@ function getDiscoveredVms(serverEndPoint, mock){
         return delay(3000);
       })
       .then(function(){
-            page.render('result.png');
+            //page.render('result.png');
             return page.evaluate(function() {
                 var vms = [];
                 [].forEach.call(document.querySelectorAll('.link_menu'), function(span){vms.push(span.innerText);});

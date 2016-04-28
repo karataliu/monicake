@@ -7,7 +7,8 @@
   },
   "dependencies": {
     "azure-cli": "^0.9.20",
-    "phantom": "^2.0.10"
+    "phantom": "^2.0.10",
+    "yesno": "0.0.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
