@@ -48,6 +48,7 @@ describe('Step Test', function() {
   });
 
   it('VerifyPage', function(){
+    this.retries(2);
     assert(serverPublicEndpoint, "serverPublicEndpoint should not be empty");
     this.timeout(1000*20);
     var t1 = assert.isFulfilled(getDiscoveredVms(serverPublicEndpoint));
@@ -148,8 +149,8 @@ function createMonitoring(rgName, prefix){
 function createMonitoringServer(rgName, prefix, mock){
   if(mock)
     return Promise.resolve(
-    { serverInternalIp: '192.168.0.5',
-      serverPublicEndpoint: 'http://doliumtmolvecaqnwzmsmon.southeastasia.cloudapp.azure.com/zab/' });
+    { serverInternalIp: '192.168.0.6',
+      serverPublicEndpoint: 'http://doliumtinqkd7damvphumon.westus.cloudapp.azure.com/zab/' });
 
   var template = require('../azuredeployMonitoringServer.json');
   var templateParameters = {

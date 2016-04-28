@@ -2,5 +2,5 @@
     "location": "westus",
     "prefix": "doliumt",
     "tagName": "doliuMoniTest",
-    "vmCount": 2
+    "vmCount": 4
 }

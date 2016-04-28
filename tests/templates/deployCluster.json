@@ -30,13 +30,21 @@
     "locationTempSub": "[replace(variables('location'),'china','1234')]",
     "apiSuffix": "[variables('apiSuffixes')[sub(length(variables('location')),length(variables('locationTempSub')))]]",
     "blobApiSuffix": "[concat('.blob',variables('apiSuffix'))]",
-    "osType":{
-      "publisher":"Canonical",
-      "offer":"UbuntuServer",
-      "sku":"14.04.3-LTS",
-      "version":"latest"
-    },
-    "imageReference":"[variables('osType')]",
+    "imageReferences": [
+      {
+        "publisher":"Canonical",
+        "offer":"UbuntuServer",
+        "sku":"14.04.3-LTS",
+        "version":"latest"
+      },
+      {
+        "publisher":"OpenLogic",
+        "offer":"CentOS",
+        "sku":"7.2",
+        "version":"latest"
+      }
+    ],
+    "imageReferenceCount": "[length(variables('imageReferences'))]",
     "OSDiskName": "[concat(variables('prefix'),'disk')]",
     "nicName": "[concat(variables('prefix'),'nic')]",
     "virtualNetworkName": "[concat(variables('prefix'),'vnet')]",
@@ -174,7 +182,7 @@
             "caching": "ReadWrite",
             "createOption": "FromImage"
           },
-          "imageReference":"[variables('imageReference')]"
+          "imageReference":"[variables('imageReferences')[mod(copyIndex(variables('VMStart')), variables('imageReferenceCount'))]]"
         },
         "networkProfile": {
           "networkInterfaces": [
