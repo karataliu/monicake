@@ -85,3 +85,16 @@ exports.listTestResourceGroups = function(){
     });
   });
 };
+
+exports.delResourceGroup = function(rgName){
+  console.log("Deleting resource group %s.", rgName);
+  return new Promise(function(resolve, reject){
+    return client.resourceGroups.deleteMethod(rgName, function(err, res){
+      if(err) reject(err);
+      else resolve(rgName);
+    });
+  })
+  .then(function(){
+    console.log("Deleted: %s.", rgName);
+  });
+}
