@@ -270,7 +270,7 @@ foreach my $step (@$steps){
         $ret = &$run;
     }
 
-    if ((my $ret = &$run)){
+    if ($ret){
         info "failed with code: $ret";
         exit(2);
     }
