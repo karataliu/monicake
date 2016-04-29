@@ -1,6 +1,6 @@
 // Testing util using default account.
 
-var conf        = require('./conf.json');
+var conf        = require('./conf');
 var utils       = require('azure-cli/lib/util/utils');
 var profile     = require("azure-cli/lib/util/profile");
 var client      = utils.createResourceClient(profile.current.getSubscription());

@@ -1,4 +1,4 @@
-var conf      = require('./conf.json');
+var conf      = require('./conf');
 var testUtils = require('./testUtils');
 var chai      = require("chai");
 var assert    = chai.assert;
