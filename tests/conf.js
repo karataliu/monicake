@@ -4,7 +4,7 @@ var nconf = {};
 for(var property in conf){
     var envName = "MONICAKE_" + property;
     if(process.env[envName]){
-        val = process.env[envName] 
+        val = process.env[envName];
     }else {
         val = conf[property];
     }
