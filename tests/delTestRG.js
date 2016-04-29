@@ -3,6 +3,11 @@ var yesno       = require('yesno');
 
 testUtils.listTestResourceGroups()
     .then(function(list){
+        if(list.length === 0){
+            console.log("no testing resource groups found.");
+            process.exit();
+        }
+
         var names = list.map(rg => rg.name);
         console.log("The following resource groups are to be deleted:");
         names.forEach(function(name){console.log(name);}); 

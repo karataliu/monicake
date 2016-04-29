@@ -97,4 +97,4 @@ exports.delResourceGroup = function(rgName){
   .then(function(){
     console.log("Deleted: %s.", rgName);
   });
-}
+};
