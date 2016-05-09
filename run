@@ -62,7 +62,8 @@ sub installFile
 }
 
 my %suites = (
-    "zabbix-agent"      => ['zabbix-agent']
+    "zabbix-agent"      => ['zabbix-agent'],
+    "zabbix-server"     => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql']
 );
 
 sub installPackageSuite
@@ -111,23 +112,6 @@ sub getPackageInstall()
 
     info("Package manager not supported.", LOGERR);
     exit(3);
-}
-
-sub installPackage
-{
-    my $packageLine = join(" ", @_);
-    my $cmd         = "DEBIAN_FRONTEND=noninteractive apt-get -y install $packageLine";
-
-    info "Begin install packages:$packageLine", LOGDEBUG;
-
-    my $ret = runCmd($cmd);
-    if (!$ret){
-        info("Install succeed.", LOGDEBUG);
-    }else{
-        info("Install failed.", LOGDEBUG);
-    }
-
-    return $ret;
 }
 
 my $zabbixDb        = "zabbixdb";
@@ -213,7 +197,7 @@ my %flow = (
         {
             name    => "install Zabbix Server package.",
             run     => sub {
-                installPackage("zabbix-server-mysql zabbix-frontend-php php5-mysql");
+                installPackageSuite("zabbix-server");
             },
         },
         {
