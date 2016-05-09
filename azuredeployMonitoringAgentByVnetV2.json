@@ -14,7 +14,7 @@
       "metadata": {
         "description": "subnet name."
       },
-      "defaultValue": "Subnet"
+      "defaultValue": "default"
     },
     "serverIp":{
         "type": "string",
