@@ -157,7 +157,9 @@
                 "settings":{
                     "fileUris": [
                       "https://raw.githubusercontent.com/karataliu/monicake/master/run",
-                      "https://raw.githubusercontent.com/karataliu/monicake/master/util.pm"
+                      "https://raw.githubusercontent.com/karataliu/monicake/master/util.pm",
+                      "https://raw.githubusercontent.com/karataliu/monicake/master/regTemplate",
+                      "https://raw.githubusercontent.com/karataliu/monicake/master/templateAzureVmLinux.xml"
                     ],
                     "commandToExecute": "./run -v server"
                 }

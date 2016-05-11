@@ -130,7 +130,7 @@ my %flow = (
         {
             name    => "Configure azure specific tempalte.",
             run     => sub {
-                runCmd("./regTemplate");
+                runCmd("perl regTemplate");
             },
         },
         {
