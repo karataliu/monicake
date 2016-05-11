@@ -33,7 +33,10 @@
             "type": "CustomScriptForLinux",
             "typeHandlerVersion": "1.4",
             "settings":{
-                "fileUris": ["https://raw.githubusercontent.com/karataliu/monicake/master/run"],
+                "fileUris": [
+                  "https://raw.githubusercontent.com/karataliu/monicake/master/run",
+                  "https://raw.githubusercontent.com/karataliu/monicake/master/util.pm"
+                ],
                 "commandToExecute": "[concat('./run -v agent ', parameters('serverIp'))]"
             }
       }

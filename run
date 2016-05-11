@@ -4,6 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use Getopt::Std;
+use util qw(installFile)
 
 use constant {
     LOGDEBUG  => 1,
@@ -50,15 +51,6 @@ sub runCmd
     }
 
     return $ret;
-}
-
-sub installFile
-{
-    my $path        = shift;
-    my $content     = shift;
-
-    $content =~ s/\$/\\\$/g if $content=~/\$/;
-    runCmd("cat >$path <<EOF\n$content\nEOF");
 }
 
 my %suites = (
