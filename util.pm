@@ -19,9 +19,12 @@ sub installFile
 {
     my $path        = shift;
     my $content     = shift;
+    my $FL;
 
-    $content =~ s/\$/\\\$/g if $content=~/\$/;
-    runCmd("cat >$path <<EOF\n$content\nEOF");
+    open($FL, '>', $path);
+    print $FL $content;
+    close $FL;
+    return 0;
 }
 
 1;
