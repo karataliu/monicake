@@ -73,8 +73,10 @@ my %suites = (
 sub installPackageSuite
 {
     my $packageSuite    = shift;
-    my $packageInstall  = getPackageInstall();
-    return 1 unless $packageInstall;
+    my $packageManager  = getPackageManager();
+    return 1 unless $packageManager;
+
+    my $packageInstall  = $$packageManager{install};
 
     unless(exists $suites{$packageSuite}){
         info("Package suite $packageSuite not supported.");
@@ -89,30 +91,35 @@ sub installPackageSuite
     if (!$ret){
         info("Install succeed.", LOGDEBUG);
     }else{
-        info("Install failed.", LOGDEBUG);
+        info("Install failed. Try update.", LOGDEBUG);
+        my $packageUpdate = $$packageManager{refresh};
+        runCmd($packageUpdate);
+        my $ret = runCmd($cmd);
+        if (!$ret){
+            info("Install succeed.", LOGDEBUG);
+        }else{
+            info("Install failed.", LOGDEBUG);
+        }
     }
 
     return $ret;
 }
 
-sub getPackageInstall()
+sub getPackageManager()
 {
     my %pm  = (
-        aptitude    => "DEBIAN_FRONTEND=noninteractive apt-get -y install",
-        yum         => "yum -y install"
+        aptitude    => {
+            install => "DEBIAN_FRONTEND=noninteractive apt-get -y install",
+            refresh => "apt-get update"
+        },
+        yum         => {
+            install => "yum -y install",
+            refresh => "rpm -q zabbix-release || rpm -ivh http://repo.zabbix.com/zabbix/2.4/rhel/7/x86_64/zabbix-release-2.4-1.el7.noarch.rpm"
+        }
     );
 
-    if(!runCmd('which apt-get 2> /dev/null')){
-        my $ret = runCmd("apt-get update");
-        return undef if ($ret);
-        return $pm{aptitude};
-    }
-
-    if(!runCmd('which yum 2> /dev/null')){
-        my $ret = runCmd("rpm -q zabbix-release || rpm -ivh http://repo.zabbix.com/zabbix/2.4/rhel/7/x86_64/zabbix-release-2.4-1.el7.noarch.rpm");
-        return undef if($ret);
-        return $pm{yum};
-    }
+    return $pm{aptitude}    unless runCmd('which apt-get 2> /dev/null');
+    return $pm{yum}         unless runCmd('which yum 2> /dev/null');
 
     info("Package manager not supported.", LOGERR);
     exit(3);
