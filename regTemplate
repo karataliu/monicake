@@ -58,16 +58,21 @@ my $importRequest  =
     "params", {
         "format", "xml",
         "rules", {
-            "templatess", {
-                "updateExisting", true
-            }
+            "templates", {
+                "createMissing", 1
+            },
+            "items", {
+                "createMissing", 1
+            },
+            "triggers",{
+                "createMissing", 1
+            },
         },
         "source", "$xml"
     },
     "auth", "$token",
     "id", 1
-}
+};
 
-print $xml;
-#print callrpc($importRequest);
+callrpc($importRequest);
 
