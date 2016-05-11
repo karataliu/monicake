@@ -94,7 +94,7 @@ sub installPackageSuite
         info("Install failed. Try update.", LOGDEBUG);
         my $packageUpdate = $$packageManager{refresh};
         runCmd($packageUpdate);
-        my $ret = runCmd($cmd);
+        $ret = runCmd($cmd);
         if (!$ret){
             info("Install succeed.", LOGDEBUG);
         }else{
