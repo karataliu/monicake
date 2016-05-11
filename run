@@ -103,6 +103,7 @@ my %flow = (
             name    => "install Zabbix Server package.",
             run     => sub {
                 installPackageSuite("zabbix-server");
+                installPackageSuite("perl-jsonrpc");
             },
         },
         {

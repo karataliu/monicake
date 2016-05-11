@@ -67,7 +67,8 @@ sub runCmd
 
 my %suites = (
     "zabbix-agent"      => ['zabbix-agent'],
-    "zabbix-server"     => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql']
+    "zabbix-server"     => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql'],
+    "perl-jsonrpc"               => ['libjson-rpc-perl'],
 );
 
 sub installPackageSuite
