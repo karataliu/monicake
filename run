@@ -128,6 +128,12 @@ my %flow = (
             },
         },
         {
+            name    => "Configure azure specific tempalte.",
+            run     => sub {
+                runCmd("./regTemplate");
+            },
+        }
+        {
             name    => "Configure autoreg.",
             run     => sub {
                 runCmd("mysql -u$zabbixUser -p$zabbixPassword $zabbixDb <<EOF\n$autoRegSetup\nEOF");

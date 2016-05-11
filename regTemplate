@@ -6,7 +6,7 @@ use warnings;
 use JSON::RPC::Legacy::Client;
 
 my $client      = new JSON::RPC::Legacy::Client;
-my $endpoint    = shift || 'http://doliuwo2mon.southeastasia.cloudapp.azure.com/zab/';
+my $endpoint    = shift || 'http://127.0.0.1/zab/';
 my $uri         = $endpoint."api_jsonrpc.php";
 
 sub callrpc
