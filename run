@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use Getopt::Std;
-use util qw(installFile :logLevel);
+use util qw(installFile :logging);
 
 our $VERSION    = 0.1.4;
 my $optVerbose;
@@ -14,21 +14,13 @@ my $optDryrun;
     my %opts;
     exit(1) unless getopts('vnq', \%opts);
     $optVerbose  = $opts{'v'} ? 1 : ($opts{'q'} ? 3 : 2 );
+    setLogLevel($optVerbose);
     $optDryrun   = $opts{'n'};
 }
 
 my $optType     = shift || "help";
 
 sub HELP_MESSAGE    { say "$0 [-nvq] <server|agent> ";  exit 0;}
-
-sub info
-{
-    my $msg     = shift;
-    my $level   = shift || LOGINFO;
-
-    return if ($optVerbose > $level);
-    say "[MONICAKE] $msg";
-}
 
 sub runCmd
 {
