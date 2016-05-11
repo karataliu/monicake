@@ -4,14 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use Getopt::Std;
-use util qw(installFile)
-
-use constant {
-    LOGDEBUG  => 1,
-    LOGINFO   => 2,
-    LOGWARN   => 3,
-    LOGERR    => 4,
-};
+use util qw(installFile :logLevel);
 
 our $VERSION    = 0.1.4;
 my $optVerbose;
