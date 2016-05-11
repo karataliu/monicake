@@ -1,0 +1,35 @@
+#!/usr/bin/env perl
+
+use 5.010;
+use strict;
+use warnings;
+use JSON::RPC::Client;
+
+my $client = new JSON::RPC::Client;
+my $url    = 'http://doliuwo2mon.southeastasia.cloudapp.azure.com/zab/api_jsonrpc.php';
+
+my $callobj = 
+{
+    "jsonrpc", "2.0",
+    "method", "user.login",
+    "params", {
+        "user", "Admin",
+        "password", "zabbix"
+    },
+    "id", 1,
+    "auth", null
+};
+
+my $res = $client->call($uri, $callobj);
+   
+   if($res) {
+      if ($res->is_error) {
+          print "Error : ", $res->error_message;
+      }
+      else {
+          print $res->result;
+      }
+   }
+   else {
+      print $client->status_line;
+   }
