@@ -16,7 +16,7 @@ sub callrpc
 
     if($res) {
         if ($res->is_error) {
-            print "Error : ", $res->error_message;
+            say "Error : ", $res->error_message;
             exit(1);
         }
         else {
@@ -37,8 +37,37 @@ my $authRequest =
         "user", "Admin",
         "password", "zabbix"
     },
-    "id", 1,
+    "id", 0,
     "auth", undef
 };
 
-say callrpc($authRequest);
+my $token = callrpc($authRequest);
+
+open FL,'<','templateAzureVmLinux.xml';
+my $xml;
+{
+    local $/ = undef;
+    $xml = <FL>;
+}
+close FL;
+
+my $importRequest  = 
+{
+    "jsonrpc", "2.0",
+    "method", "configuration.import",
+    "params", {
+        "format", "xml",
+        "rules", {
+            "templatess", {
+                "updateExisting", true
+            }
+        },
+        "source", "$xml"
+    },
+    "auth", "$token",
+    "id", 1
+}
+
+print $xml;
+#print callrpc($importRequest);
+
