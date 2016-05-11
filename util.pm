@@ -5,9 +5,8 @@ use strict;
 use warnings;
 use Exporter qw(import);
 
-our @EXPORT_OK      = qw(installFile runCmd
-    LOGDEBUG LOGINFO LOGWARN LOGERR info
-    );
+our @EXPORT_OK      = qw(installFile installPackageSuite runCmd runSteps
+    LOGDEBUG LOGINFO LOGWARN LOGERR info);
 our %EXPORT_TAGS    = (logging => [qw(LOGDEBUG LOGINFO LOGWARN LOGERR info)]);
 
 use constant {
@@ -17,8 +16,9 @@ use constant {
     LOGERR    => 4,
 };
 
-our $verbose = LOGINFO;
-our $dryrun  = 1;
+our $verbose        = LOGINFO;
+our $dryrun         = 1;
+our $defaultRetry   = 2;
 
 sub installFile
 {
@@ -62,6 +62,84 @@ sub runCmd
     }
 
     return $ret;
+}
+
+
+my %suites = (
+    "zabbix-agent"      => ['zabbix-agent'],
+    "zabbix-server"     => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql']
+);
+
+sub installPackageSuite
+{
+    my $packageSuite    = shift;
+    my $packageInstall  = getPackageInstall();
+    return 1 unless $packageInstall;
+
+    unless(exists $suites{$packageSuite}){
+        info("Package suite $packageSuite not supported.");
+        exit(4);
+    }
+
+    my $packagesRef = $suites{$packageSuite};
+    my $packageLine = join(" ", @$packagesRef);
+    my $cmd = "$packageInstall $packageLine";
+    info "Begin install packages:$packageLine", LOGDEBUG;
+    my $ret = runCmd($cmd);
+    if (!$ret){
+        info("Install succeed.", LOGDEBUG);
+    }else{
+        info("Install failed.", LOGDEBUG);
+    }
+
+    return $ret;
+}
+
+sub getPackageInstall()
+{
+    my %pm  = (
+        aptitude    => "DEBIAN_FRONTEND=noninteractive apt-get -y install",
+        yum         => "yum -y install"
+    );
+
+    if(!runCmd('which apt-get 2> /dev/null')){
+        my $ret = runCmd("apt-get update");
+        return undef if ($ret);
+        return $pm{aptitude};
+    }
+
+    if(!runCmd('which yum 2> /dev/null')){
+        my $ret = runCmd("rpm -q zabbix-release || rpm -ivh http://repo.zabbix.com/zabbix/2.4/rhel/7/x86_64/zabbix-release-2.4-1.el7.noarch.rpm");
+        return undef if($ret);
+        return $pm{yum};
+    }
+
+    info("Package manager not supported.", LOGERR);
+    exit(3);
+}
+
+sub runSteps
+{
+    my $steps   = shift;
+    my $len     = @$steps;
+    my $index   = 0;
+    foreach my $step (@$steps){
+        ++$index;
+        info "($index/$len) $$step{name}";
+        my $run = $$step{run};
+        my $ret = &$run;
+        my $retry = $defaultRetry;
+        while ($ret && $retry){
+            info "failed with code: $ret, $retry retries remaining.";
+            --$retry;
+            $ret = &$run;
+        }
+
+        if ($ret){
+            info "failed with code: $ret";
+            exit(2);
+        }
+    }
 }
 
 1;
