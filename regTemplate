@@ -3,12 +3,35 @@
 use 5.010;
 use strict;
 use warnings;
-use JSON::RPC::Client;
+use JSON::RPC::Legacy::Client;
 
-my $client = new JSON::RPC::Client;
-my $url    = 'http://doliuwo2mon.southeastasia.cloudapp.azure.com/zab/api_jsonrpc.php';
+my $client      = new JSON::RPC::Legacy::Client;
+my $endpoint    = shift || 'http://doliuwo2mon.southeastasia.cloudapp.azure.com/zab/';
+my $uri         = $endpoint."api_jsonrpc.php";
 
-my $callobj = 
+
+
+sub callrpc
+{
+    my $callobj = shift;
+    my $res = $client->call($uri, $callobj);
+
+    if($res) {
+        if ($res->is_error) {
+            say "Error : ", $res->error_message;
+            exit(1);
+        }
+        else {
+            return $res->result;
+        }
+    }
+    else {
+        say "Error code: ", $client->status_line;
+        exit(2);
+    }
+}
+
+my $authRequest = 
 {
     "jsonrpc", "2.0",
     "method", "user.login",
@@ -20,16 +43,4 @@ my $callobj =
     "auth", null
 };
 
-my $res = $client->call($uri, $callobj);
-   
-   if($res) {
-      if ($res->is_error) {
-          print "Error : ", $res->error_message;
-      }
-      else {
-          print $res->result;
-      }
-   }
-   else {
-      print $client->status_line;
-   }
+callrpc($authRequest);
