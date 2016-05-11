@@ -128,6 +128,13 @@ my %flow = (
             },
         },
         {
+            name    => "restart service.",
+            run     => sub {
+                runCmd("service apache2 restart")
+                || runCmd("service zabbix-server restart");
+            }
+        },
+        {
             name    => "Configure azure specific tempalte.",
             run     => sub {
                 runCmd("perl regTemplate");
@@ -138,13 +145,6 @@ my %flow = (
             run     => sub {
                 runCmd("mysql -u$zabbixUser -p$zabbixPassword $zabbixDb <<EOF\n$autoRegSetup\nEOF");
             },
-        },
-        {
-            name    => "restart service.",
-            run     => sub {
-                runCmd("service apache2 restart")
-                || runCmd("service zabbix-server restart");
-            }
         },
     ],
 );
