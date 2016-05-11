@@ -9,8 +9,6 @@ my $client      = new JSON::RPC::Legacy::Client;
 my $endpoint    = shift || 'http://doliuwo2mon.southeastasia.cloudapp.azure.com/zab/';
 my $uri         = $endpoint."api_jsonrpc.php";
 
-
-
 sub callrpc
 {
     my $callobj = shift;
@@ -18,7 +16,7 @@ sub callrpc
 
     if($res) {
         if ($res->is_error) {
-            say "Error : ", $res->error_message;
+            print "Error : ", $res->error_message;
             exit(1);
         }
         else {
@@ -40,7 +38,7 @@ my $authRequest =
         "password", "zabbix"
     },
     "id", 1,
-    "auth", null
+    "auth", undef
 };
 
-callrpc($authRequest);
+say callrpc($authRequest);
