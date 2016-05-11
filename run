@@ -4,39 +4,20 @@ use 5.010;
 use strict;
 use warnings;
 use Getopt::Std;
-use util qw(installFile :logging);
+use util qw(installFile runCmd :logging);
 
 our $VERSION    = 0.1.4;
-my $optVerbose;
-my $optDryrun;
 
 {   # Parse options.
     my %opts;
     exit(1) unless getopts('vnq', \%opts);
-    $optVerbose  = $opts{'v'} ? 1 : ($opts{'q'} ? 3 : 2 );
-    setLogLevel($optVerbose);
-    $optDryrun   = $opts{'n'};
+    $util::verbose  = $opts{'v'} ? 1 : ($opts{'q'} ? 3 : 2 );
+    $util::dryrun   = $opts{'n'};
 }
 
 my $optType     = shift || "help";
 
 sub HELP_MESSAGE    { say "$0 [-nvq] <server|agent> ";  exit 0;}
-
-sub runCmd
-{
-    my $cmd = shift;
-    if ($optVerbose >= LOGINFO && $cmd !~ /<<EOF/) { $cmd .= " >/dev/null"; }
-
-    info "Run command:\n$cmd", LOGDEBUG;
-    return 0 if $optDryrun;
-
-    my $ret = system($cmd);
-    if ($ret){
-        info "Return code is $ret", LOGDEBUG;
-    }
-
-    return $ret;
-}
 
 my %suites = (
     "zabbix-agent"      => ['zabbix-agent'],
