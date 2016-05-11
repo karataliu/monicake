@@ -132,7 +132,7 @@ my %flow = (
             run     => sub {
                 runCmd("./regTemplate");
             },
-        }
+        },
         {
             name    => "Configure autoreg.",
             run     => sub {
