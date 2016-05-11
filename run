@@ -79,6 +79,7 @@ my $confAgent = << "EOM";
 PidFile=/var/run/zabbix/zabbix_agentd.pid
 Server=$zabbixServerIp
 ServerActive=$zabbixServerIp
+UserParameter=azure.vm.agent.alive,ps aux |grep -c "[w]aagent -daemon"
 EOM
 
 my %flow = (
