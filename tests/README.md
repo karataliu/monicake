@@ -17,3 +17,19 @@ azure login
 npm install
 grunt
 ```
+
+4. Test config 
+Testing config is located at conf.js 
+{
+    "location": "westus",
+    "prefix": "",
+    "tagName": "",
+    "vmCount": 2,
+    "adminPublicKey": ""
+}
+
+Set the following Environment variable with MONICAKE_ prefix to customize your testing.
+e.g.
+MONICAKE_location=chinaeast
+
+will update location to 'chinaeast'

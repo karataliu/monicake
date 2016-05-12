@@ -5,7 +5,7 @@ var assert    = chai.assert;
 var phantom = require('phantom');
 chai.use(require("chai-as-promised"));
 
-describe('Step Test', function() {
+xdescribe('Step Test', function() {
   var resourceGroup;
   var prefix;
 
@@ -29,7 +29,7 @@ describe('Step Test', function() {
   it('CreateMonitoringServer', function () {
     assert(prefix, "Prefix should not be empty");
     assert(resourceGroup, "resourceGroup should not be empty");
-    this.timeout(1000*650);
+    this.timeout(1000*660);
     var t1 = assert.isFulfilled(createMonitoringServer(resourceGroup, prefix));
     return Promise.all([
       t1.then(console.log),
@@ -66,7 +66,7 @@ describe('One Test', function() {
   var serverPublicEndpoint;
 
   it('CreateTestEnv', function () {
-    this.timeout(1000*550);
+    this.timeout(1000*560);
     var t1 = assert.isFulfilled(testUtils.createTestEnv());
     return Promise.all([
       t1.then(console.log),
