@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Exporter qw(import);
 
-our @EXPORT_OK      = qw(installFile installPackageSuite runCmd runSteps
+our @EXPORT_OK      = qw(installFile installPackageSuite runCmd runSteps enableService
     LOGDEBUG LOGINFO LOGWARN LOGERR info);
 our %EXPORT_TAGS    = (logging => [qw(LOGDEBUG LOGINFO LOGWARN LOGERR info)]);
 
@@ -148,6 +148,35 @@ sub runSteps
             exit(2);
         }
     }
+}
+
+sub enableService
+{
+    my $serviceName     = shift;
+    my $serviceManager  = getServiceManager();
+    return 1 unless $serviceManager;
+    my $cmd = sprintf $$serviceManager{enable}, $serviceName;
+    my $ret = runCmd($cmd);
+    
+    return $ret;
+}
+
+sub getServiceManager
+{
+     my %pm  = (
+        systemctl    => {
+            enable => "systemctl enable %s",            
+        },
+        upstart      => {
+            enable => "echo %s",
+        }
+    );
+
+    return $pm{systemctl}       unless runCmd('which systemctl 2> /dev/null');
+    return $pm{upstart}         unless runCmd('which status 2> /dev/null');
+
+    info("Service manager not supported.", LOGERR);
+    exit(3);
 }
 
 1;

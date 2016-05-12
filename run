@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use Getopt::Std;
-use util qw(installFile installPackageSuite runCmd runSteps :logging);
+use util qw(installFile installPackageSuite runCmd runSteps enableService :logging);
 
 our $VERSION    = 0.1.4;
 
@@ -95,6 +95,10 @@ my %flow = (
             run     => sub { installFile('/etc/zabbix/zabbix_agentd.conf', $confAgent); },
         },
         {
+            name    => "Enable Zabbix Agent service.",
+            run     => sub { enableService('zabbix-agent'); },
+        },
+        {
             name    => "Restart Zabbix Agent service.",
             run     => sub { runCmd('service zabbix-agent restart');},
         },
@@ -104,7 +108,7 @@ my %flow = (
             name    => "install Zabbix Server package.",
             run     => sub {
                 installPackageSuite("zabbix-server");
-                installPackageSuite("perl-jsonrpc");
+                installPackageSuite("perl-jsonrpc");    # for regTemplate
             },
         },
         {
