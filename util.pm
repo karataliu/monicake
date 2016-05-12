@@ -9,6 +9,8 @@ our @EXPORT_OK      = qw(installFile installPackageSuite runCmd runSteps enableS
     LOGDEBUG LOGINFO LOGWARN LOGERR info);
 our %EXPORT_TAGS    = (logging => [qw(LOGDEBUG LOGINFO LOGWARN LOGERR info)]);
 
+my $rpmRepo = "http://doliutm.trafficmanager.net/zabbix/2.2/rhel/7/x86_64/zabbix-release-2.2-1.el7.noarch.rpm";
+
 use constant {
     LOGDEBUG  => 1,
     LOGINFO   => 2,
@@ -115,7 +117,7 @@ sub getPackageManager()
         },
         yum         => {
             install => "yum -y install",
-            refresh => "rpm -q zabbix-release || rpm -ivh http://repo.zabbix.com/zabbix/2.4/rhel/7/x86_64/zabbix-release-2.4-1.el7.noarch.rpm"
+            refresh => "rpm -q zabbix-release || rpm -ivh $rpmRepo"
         }
     );
 
