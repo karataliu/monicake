@@ -6,8 +6,7 @@
       "type": "string",
       "metadata": {
         "description": "vnet name."
-      },
-      "defaultValue": "myvnet"
+      }
     },
     "subnetName":{
       "type": "string",
@@ -36,7 +35,7 @@
      "properties": { 
        "mode": "Incremental", 
        "templateLink": {
-          "uri": "https://raw.githubusercontent.com/karataliu/kar-azure-template/master/vnet2vms.json",
+          "uri": "https://raw.githubusercontent.com/karataliu/kar-azure-template/master/vnet2Vms.json",
           "contentVersion": "1.0.0.0"
        }, 
        "parameters": {

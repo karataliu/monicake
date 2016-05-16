@@ -9,8 +9,7 @@ This will install the monitor VM in given vnet/subnet, and also install monitori
 This will install monitoring server only.
 
 - azuredeployMonitoringAgentByVnet.json
-- azuredeployMonitoringAgentByVnetV2.json
-This will install monitoring agents for given vnet/subnet. V2 uses another testing apprach.
+This will install monitoring agents for given vnet/subnet.
 
 - azuredeployMonitoringAgentByVms.json
 This will install monitoring agents for given Vms.
