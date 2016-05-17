@@ -12,7 +12,7 @@ This will install the monitor VM to given vnet/subnet, and also install monitori
 | Parameters            | Description                                                                       |
 | -------------         | -------------                                                                     |
 | monitorVmName         | The name for the new monitoring server VM to be created.                          |
-| storageAccount        | A existing storage account in same resource group, used for storing the new VM.   |
+| storageAccount        | An existing storage account in same resource group, used for storing the new VM.  |
 | virtualNetworkName    | The name of vnet where current VMs connects to.                                   |
 | subnetName            | The name of subnet where current VMs connects to.                                 |
 | username              | The username for the new created monitoring server VM.                            |

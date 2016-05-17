@@ -5,40 +5,39 @@
     "monitorVmName": {
       "type": "string",
       "metadata": {
-        "description": "vm name for the monitor vm."
+        "description": "Name for the monitor vm."
       }
     },
     "storageAccount": {
       "type": "string",
       "metadata": {
-        "description": "Vhd img location"
+        "description": "Existing Storage account for storing VM vhd."
       }
     },
     "virtualNetworkName":{
       "type": "string",
       "metadata": {
-        "description": "vnet name."
-      },
-      "defaultValue": "myvnet"
+        "description": "The vnet name VMs connected to."
+      }
     },
     "subnetName":{
       "type": "string",
       "metadata": {
-        "description": "subnet name."
+        "description": "The subnet name VMs connected to."
       },
       "defaultValue": "default"
     },
     "username":{
       "type": "string",
       "metadata": {
-        "description": "Monitor vm user name."
+        "description": "Monitor VM user name."
       },
       "defaultValue": "monitoruser"
     },
     "password":{
       "type": "securestring",
       "metadata": {
-        "description": "Monitor vm password."
+        "description": "Monitor VM password."
       }
     }
   },
