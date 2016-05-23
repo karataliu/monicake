@@ -9,6 +9,7 @@ This will install the monitor VM to given vnet/subnet, and also install monitori
 
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fazuredeploy.json)
 
+Deployment parameters:
 | Parameters            | Description                                                                       |
 | -------------         | -------------                                                                     |
 | monitorVmName         | The name for the new monitoring server VM to be created.                          |
@@ -18,6 +19,11 @@ This will install the monitor VM to given vnet/subnet, and also install monitori
 | username              | The username for the new created monitoring server VM.                            |
 | password              | The password for the new created monitoring server VM.                            |
 
+
+Deployment output
+| Output                | Description                                                                       |
+| -------------         | -------------                                                                     |
+| serverPublicEndpoint  | The frontend endpoint for the monitoring serice(aka monitoring portal).           |
 
 
 - azuredeployMonitoringServer.json
