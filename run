@@ -10,9 +10,9 @@ use util qw(installFile installPackageSuite runCmd runSteps regSteps enableServi
 our $VERSION    = 0.1.6;
 
 my %config      = (
-    "client.serverIp"       => undef,
+    "agent.serverIp"       => undef,
     "server.mysqlHost"      => undef,
-    "server.mysqlDB"        => undef,
+    "server.mysqlDbName"    => undef,
     "server.mysqlUser"      => undef,
     "server.mysqlPassword"  => undef,
 );
@@ -38,9 +38,10 @@ my %config      = (
         if(exists $config{$key}){
             $config{$key} = $value;
         }else{
-            say "Invalid config key '$key' specified. Supported keys are:";
-            say "client.serverIp";
-            exit(5);
+            pod2usage(
+                -msg => "Invalid config key '$key' specified. Supported keys are:",
+                -sections => "CONFIGKEY",
+                -verbose => 99);
         }
     }
 }
@@ -100,12 +101,14 @@ EOM
 
 my %flow = (
     agent   => sub {
-        unless (defined($config{'client.serverIp'})){
-            say "client.serverIp not set";
-            exit(5);
+        unless (defined($config{'agent.serverIp'})){
+            pod2usage(
+                -msg => "agent.serverIp not set",
+                -sections => "DESCRIPTION",
+                -verbose => 99);
         }
         
-        my $zabbixServerIp = $config{'client.serverIp'};
+        my $zabbixServerIp = $config{'agent.serverIp'};
         my $confAgent = << "EOM";
 PidFile=/var/run/zabbix/zabbix_agentd.pid
 Server=$zabbixServerIp
@@ -184,7 +187,11 @@ run [-nqv] <server|agent> [-c configKey=configValue]
 
 =head1 DESCRIPTION
 
-B<This program> will help install monitorin agents.
+B<This program> will help setup monitoring agent/server.
+
+For agent setup, the server ip address should be given.
+
+For server setup, the backend database information could be specified.
 
 =head1 OPTIONS
 
@@ -205,6 +212,40 @@ Be more verbose.
 =item B<-c>
 
 Key configruation.
+
+=back
+
+=head1 CONFIGKEY
+
+=head2 AGENT
+
+=over 4
+
+=item B<agent.serverIp>
+
+Required. Specify server ip address.
+
+=back
+
+=head2 SERVER
+
+=over 4
+
+=item B<server.mysqlHost>
+
+Specify database host, if this option is not given, will setup a new MySQL instance on localhost.
+
+=item B<server.mysqlDbName>
+
+Specify the name for monitoring database.
+
+=item B<server.mysqlUser>
+
+Specify the username for monitoring database.
+
+=item B<server.mysqlPassword>
+
+Specify the password for monitoring database.
 
 =back
 

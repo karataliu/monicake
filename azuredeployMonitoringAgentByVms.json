@@ -37,7 +37,7 @@
                   "https://raw.githubusercontent.com/karataliu/monicake/master/run",
                   "https://raw.githubusercontent.com/karataliu/monicake/master/util.pm"
                 ],
-                "commandToExecute": "[concat('./run -v agent -c client.serverIp=', parameters('serverIp'))]"
+                "commandToExecute": "[concat('./run -v agent -c agent.serverIp=', parameters('serverIp'))]"
             }
       }
     }
