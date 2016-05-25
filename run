@@ -4,6 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use Getopt::Long;
+use Pod::Usage;
 use util qw(installFile installPackageSuite runCmd runSteps regSteps enableService :logging);
 
 our $VERSION    = 0.1.6;
@@ -45,8 +46,6 @@ my %config      = (
 }
 
 my $optType     = shift || "help";
-
-sub HELP_MESSAGE    { say "$0 [-nvq] <server|agent> [-c configKey=configValue]";  exit 0;}
 
 my $zabbixDb        = "zabbixdb";
 my $zabbixUser      = "zabbix";
@@ -171,9 +170,42 @@ EOM
 );
 
 my $getSteps = $flow{$optType};
-if (!$getSteps){
-    &HELP_MESSAGE;
-    exit(1);
-}
-
+pod2usage(1) unless $getSteps;
 runSteps(&$getSteps);
+
+__END__
+=head1 NAME
+
+run - Install server/agent for monitoring
+
+=head1 SYNOPSIS
+
+run [-nqv] <server|agent> [-c configKey=configValue]
+
+=head1 DESCRIPTION
+
+B<This program> will help install monitorin agents.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-n>
+
+Dry run.
+
+=item B<-q>
+
+Show less information.
+
+=item B<-v>
+
+Be more verbose.
+
+=item B<-c>
+
+Key configruation.
+
+=back
+
+=cut
