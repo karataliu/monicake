@@ -21,6 +21,7 @@ use constant {
 our $verbose        = LOGINFO;
 our $dryrun         = 1;
 our $defaultRetry   = 2;
+our $defaultSleep   = 5;
 
 sub installFile
 {
@@ -140,7 +141,8 @@ sub runSteps
         my $ret = &$run;
         my $retry = $defaultRetry;
         while ($ret && $retry){
-            info "failed with code: $ret, $retry retries remaining.";
+            info "failed with code: $ret, $retry retries remaining. Sleep for $defaultSleep seconds...";
+            sleep($defaultSleep);
             --$retry;
             $ret = &$run;
         }
