@@ -103,16 +103,22 @@ START=yes
 CONFIG_FILE="/etc/zabbix/zabbix_server.conf"
 EOM
 
-my $zabbixServerIp = $config{'client.serverIp'} || "192.168.0.4";
-my $confAgent = << "EOM";
+
+my %flow = (
+    agent   => sub {
+        unless (defined($config{'client.serverIp'})){
+            say "client.serverIp not set";
+            exit(5);
+        }
+        
+        my $zabbixServerIp = $config{'client.serverIp'};
+        my $confAgent = << "EOM";
 PidFile=/var/run/zabbix/zabbix_agentd.pid
 Server=$zabbixServerIp
 ServerActive=$zabbixServerIp
 UserParameter=azure.vm.agent.alive,ps aux |grep -c "[w]aagent -daemon"
 EOM
 
-my %flow = (
-    agent   => sub {
         my $s1 = [];
         regSteps($s1, "Install Zabbix Agent package.", sub {
             installPackageSuite("zabbix-agent");
@@ -159,10 +165,12 @@ my %flow = (
         regSteps($s1, "Configure autoreg.", sub{
             runCmd("mysql -u$zabbixUser -p$zabbixPassword $zabbixDb <<EOF\n$autoRegSetup\nEOF");
         });
+
+        return $s1;
     }
 );
 
-my $getSteps = $flows{$optType};
+my $getSteps = $flow{$optType};
 if (!$getSteps){
     &HELP_MESSAGE;
     exit(1);
