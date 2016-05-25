@@ -80,11 +80,6 @@ global \$DB;
 ?>
 EOM
 
-my $dbSetup = << "EOM";
-create database if not exists $zabbixDb character set utf8 collate utf8_bin;
-grant all privileges on $zabbixDb.* to $zabbixUser\@localhost identified by '$zabbixPassword';
-EOM
-
 my $autoRegSetup = <<'EOM';
 INSERT INTO \`actions\` VALUES (7,'autoreg1',2,0,0,0,'Auto registration: {HOST.HOST}','Host name: {HOST.HOST}\r\nHost IP: {HOST.IP}\r\nAgent port: {HOST.PORT}',0,'','');
 INSERT INTO \`operations\` VALUES (7,7,6,0,1,1,0);
@@ -135,7 +130,7 @@ EOM
 
         return $s1;
     },
-    server => sub {
+    server  => sub {
         my $s1 = [];
         regSteps($s1, "Install Zabbix Server package.", sub{
             installPackageSuite("zabbix-server");
@@ -146,7 +141,12 @@ EOM
             || runCmd("a2enconf zabbix");
         });
         regSteps($s1, "Configure initial db.", sub{
-            runCmd("mysql <<EOF\n$dbSetup\nEOF")
+            my $dbSetup = << "EOM";
+create database if not exists $zabbixDb character set utf8 collate utf8_bin;
+grant all privileges on $zabbixDb.* to $zabbixUser\@localhost identified by '$zabbixPassword';
+EOM
+
+            runCmd("mysql -e \"$dbSetup\"")
             || runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz "
                         ."/usr/share/zabbix-server-mysql/images.sql.gz "
                         ."/usr/share/zabbix-server-mysql/data.sql.gz ".
