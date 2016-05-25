@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Exporter qw(import);
 
-our @EXPORT_OK      = qw(installFile installPackageSuite runCmd runSteps enableService
+our @EXPORT_OK      = qw(installFile installPackageSuite runCmd runSteps regSteps enableService
     LOGDEBUG LOGINFO LOGWARN LOGERR info);
 our %EXPORT_TAGS    = (logging => [qw(LOGDEBUG LOGINFO LOGWARN LOGERR info)]);
 
@@ -129,6 +129,17 @@ sub getPackageManager()
     exit(3);
 }
 
+sub regSteps
+{
+    my $steps       = shift;
+    my $name        = shift;
+    my $sub         = shift;
+    push @$steps, {
+        name    => $name,
+        run     => $sub,
+    };
+}
+
 sub runSteps
 {
     my $steps   = shift;
@@ -169,7 +180,7 @@ sub getServiceManager
 {
      my %pm  = (
         systemctl    => {
-            enable => "systemctl enable %s",            
+            enable => "systemctl enable %s",
         },
         upstart      => {
             enable => "echo %s",

@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use Getopt::Long;
-use util qw(installFile installPackageSuite runCmd runSteps enableService :logging);
+use util qw(installFile installPackageSuite runCmd runSteps regSteps enableService :logging);
 
 our $VERSION    = 0.1.6;
 
@@ -112,80 +112,60 @@ UserParameter=azure.vm.agent.alive,ps aux |grep -c "[w]aagent -daemon"
 EOM
 
 my %flow = (
-    agent   => [
-        {
-            name    => "install Zabbix Agent package.",
-            run     => sub {
-                installPackageSuite("zabbix-agent");
-            },
-        },
-        {
-            name    => "Config zabbix agent.",
-            run     => sub { installFile('/etc/zabbix/zabbix_agentd.conf', $confAgent); },
-        },
-        {
-            name    => "Enable Zabbix Agent service.",
-            run     => sub { enableService('zabbix-agent'); },
-        },
-        {
-            name    => "Restart Zabbix Agent service.",
-            run     => sub { runCmd('service zabbix-agent restart');},
-        },
-    ],
-    server  => [
-        {
-            name    => "install Zabbix Server package.",
-            run     => sub {
-                installPackageSuite("zabbix-server");
-                installPackageSuite("perl-jsonrpc");    # for regTemplate
-            },
-        },
-        {
-            name    => "configure apache.",
-            run     => sub {
-                installFile('/etc/apache2/conf-available/zabbix.conf', $confServerApachePhp)
-                || runCmd("a2enconf zabbix");
-            },
-        },
-        {
-            name    => "Configure initial db.",
-            run     => sub {
-                runCmd("mysql <<EOF\n$dbSetup\nEOF")
-                || runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz "
-                            ."/usr/share/zabbix-server-mysql/images.sql.gz "
-                            ."/usr/share/zabbix-server-mysql/data.sql.gz ".
-                            "|mysql -u$zabbixUser -p$zabbixPassword $zabbixDb")
-                || installFile('/etc/zabbix/zabbix.conf.php', $confServerPhp)
-                || installFile('/etc/zabbix/zabbix_server.conf', $confServer)
-                || installFile('/etc/default/zabbix-server', $confDefault);
-            },
-        },
-        {
-            name    => "restart service.",
-            run     => sub {
-                runCmd("service apache2 restart")
-                || runCmd("service zabbix-server restart");
-            }
-        },
-        {
-            name    => "Configure azure specific tempalte.",
-            run     => sub {
-                runCmd("perl regTemplate");
-            },
-        },
-        {
-            name    => "Configure autoreg.",
-            run     => sub {
-                runCmd("mysql -u$zabbixUser -p$zabbixPassword $zabbixDb <<EOF\n$autoRegSetup\nEOF");
-            },
-        },
-    ],
+    agent   => sub {
+        my $s1 = [];
+        regSteps($s1, "Install Zabbix Agent package.", sub {
+            installPackageSuite("zabbix-agent");
+        });
+        regSteps($s1, "Config zabbix agent.", sub {
+            installFile('/etc/zabbix/zabbix_agentd.conf', $confAgent);
+        });
+        regSteps($s1, "Enable Zabbix Agent service.", sub {
+            enableService('zabbix-agent');
+        });
+        regSteps($s1, "Restart Zabbix Agent service.", sub {
+            runCmd('service zabbix-agent restart');
+        });
+
+        return $s1;
+    },
+    server => sub {
+        my $s1 = [];
+        regSteps($s1, "Install Zabbix Server package.", sub{
+            installPackageSuite("zabbix-server");
+            installPackageSuite("perl-jsonrpc");    # for regTemplate
+        });
+        regSteps($s1, "Configure apache.", sub{
+            installFile('/etc/apache2/conf-available/zabbix.conf', $confServerApachePhp)
+            || runCmd("a2enconf zabbix");
+        });
+        regSteps($s1, "Configure initial db.", sub{
+            runCmd("mysql <<EOF\n$dbSetup\nEOF")
+            || runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz "
+                        ."/usr/share/zabbix-server-mysql/images.sql.gz "
+                        ."/usr/share/zabbix-server-mysql/data.sql.gz ".
+                        "|mysql -u$zabbixUser -p$zabbixPassword $zabbixDb")
+            || installFile('/etc/zabbix/zabbix.conf.php', $confServerPhp)
+            || installFile('/etc/zabbix/zabbix_server.conf', $confServer)
+            || installFile('/etc/default/zabbix-server', $confDefault);
+        });
+        regSteps($s1, "Restart service.", sub{
+            runCmd("service apache2 restart")
+            || runCmd("service zabbix-server restart");
+        });
+        regSteps($s1, "Configure azure specific tempalte.", sub{
+            runCmd("perl regTemplate");
+        });
+        regSteps($s1, "Configure autoreg.", sub{
+            runCmd("mysql -u$zabbixUser -p$zabbixPassword $zabbixDb <<EOF\n$autoRegSetup\nEOF");
+        });
+    }
 );
 
-my $steps = $flow{$optType};
-if (!$steps){
+my $getSteps = $flows{$optType};
+if (!$getSteps){
     &HELP_MESSAGE;
     exit(1);
 }
 
-runSteps($steps);
+runSteps(&$getSteps);
