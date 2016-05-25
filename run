@@ -3,21 +3,50 @@
 use 5.010;
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
 use util qw(installFile installPackageSuite runCmd runSteps enableService :logging);
 
-our $VERSION    = 0.1.5;
+our $VERSION    = 0.1.6;
+
+my %config      = (
+    "client.serverIp"       => undef,
+    "server.mysqlHost"      => undef,
+    "server.mysqlDB"        => undef,
+    "server.mysqlUser"      => undef,
+    "server.mysqlPassword"  => undef,
+);
 
 {   # Parse options.
-    my %opts;
-    exit(1) unless getopts('vnq', \%opts);
-    $util::verbose  = $opts{'v'} ? 1 : ($opts{'q'} ? 3 : 2 );
-    $util::dryrun   = $opts{'n'};
+    Getopt::Long::Configure qw(gnu_getopt);
+    my $optVerbose;
+    my $optQuiet;
+    my $optDryrun;
+    my %optConfig;
+
+    GetOptions(
+        'verbose|v'     =>  \$optVerbose,
+        'quiet|q'       =>  \$optQuiet,
+        'dryrun|n'      =>  \$optDryrun,
+        'config|c=s'    =>  \%optConfig,
+    ) || exit(1);
+    $util::verbose  = $optVerbose ? 1 : ($optQuiet ? 3 : 2 );
+    $util::dryrun   = $optDryrun;
+
+    # parse config
+    while (my ($key,$value) = each %optConfig) {
+        if(exists $config{$key}){
+            $config{$key} = $value;
+        }else{
+            say "Invalid config key '$key' specified. Supported keys are:";
+            say "client.serverIp";
+            exit(5);
+        }
+    }
 }
 
 my $optType     = shift || "help";
 
-sub HELP_MESSAGE    { say "$0 [-nvq] <server|agent> ";  exit 0;}
+sub HELP_MESSAGE    { say "$0 [-nvq] <server|agent> [-c configKey=configValue]";  exit 0;}
 
 my $zabbixDb        = "zabbixdb";
 my $zabbixUser      = "zabbix";
@@ -74,7 +103,7 @@ START=yes
 CONFIG_FILE="/etc/zabbix/zabbix_server.conf"
 EOM
 
-my $zabbixServerIp = shift || "192.168.0.4";
+my $zabbixServerIp = $config{'client.serverIp'} || "192.168.0.4";
 my $confAgent = << "EOM";
 PidFile=/var/run/zabbix/zabbix_agentd.pid
 Server=$zabbixServerIp
