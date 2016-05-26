@@ -180,7 +180,7 @@
                       "https://raw.githubusercontent.com/karataliu/monicake/master/regTemplate",
                       "https://raw.githubusercontent.com/karataliu/monicake/master/templateAzureVmLinux.xml"
                     ],
-                    "commandToExecute": "[concat('./setup -v server -cserver.mysqlDbName=\"', reference(parameters('mysqlDbName')), '\" -cserver.mysqlUser=\"', reference(parameters('mysqlUser')), '\" -cserver.mysqlPassword=\"', reference(parameters('mysqlPassword')),'\"')]"
+                    "commandToExecute": "[concat('./setup -v server -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=\"', parameters('mysqlPassword'),'\"')]"
                 }
           }
         }
