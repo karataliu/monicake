@@ -70,7 +70,7 @@ sub runCmd
 
 my %suites = (
     "zabbix-agent"      => ['zabbix-agent'],
-    "zabbix-server"     => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql'],
+    "zabbix-server"     => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql', 'mysql-client'],
     "mysql-server"      => ['mysql-server'],
     "perl-jsonrpc"      => ['libjson-rpc-perl'],
 );
@@ -114,7 +114,7 @@ sub getPackageManager()
 {
     my %pm  = (
         aptitude    => {
-            install => "DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends",
+            install => "DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install",
             refresh => "apt-get update"
         },
         yum         => {
