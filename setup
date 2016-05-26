@@ -126,7 +126,7 @@ EOM
         }) if ($dbServerHost eq $dbLocalhost);
 
         regSteps($s1, "Test db connectivity.", sub {
-            runCmd("mysql -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"\"");
+            runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"\"");
         });
 
         regSteps($s1, "Configure initial db.", sub {
@@ -163,7 +163,7 @@ EOM
             runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz "
                         ."/usr/share/zabbix-server-mysql/images.sql.gz "
                         ."/usr/share/zabbix-server-mysql/data.sql.gz ".
-                        "|mysql -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\"")
+                        "|mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\"")
             || installFile('/etc/zabbix/zabbix.conf.php', $confServerPhp)
             || installFile('/etc/zabbix/zabbix_server.conf', $confServer)
             || installFile('/etc/default/zabbix-server', $confDefault);
@@ -181,7 +181,7 @@ INSERT INTO \`actions\` VALUES (7,'autoreg1',2,0,0,0,'Auto registration: {HOST.H
 INSERT INTO \`operations\` VALUES (7,7,6,0,1,1,0);
 INSERT INTO \`optemplate\` VALUES (2,7,10105);
 EOM
-            runCmd("mysql -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"$autoRegSetup\"");
+            runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"$autoRegSetup\"");
         });
 
         return $s1;
