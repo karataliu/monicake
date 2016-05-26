@@ -89,6 +89,9 @@ EOM
                 -verbose    => 99);
         }
 
+        my $dbLocalhost     = 'localhost';
+
+        my $dbServerHost    = $config{'server.mysqlHost'} || $dbLocalhost;
         my $zabbixDb        = $config{'server.mysqlDbName'};
         my $zabbixUser      = $config{'server.mysqlUser'};
         my $zabbixPassword  = $config{'server.mysqlPassword'};
@@ -120,7 +123,7 @@ grant all privileges on $zabbixDb.* to $zabbixUser\@localhost identified by '$za
 EOM
 
             runCmd("mysql -e \"$dbSetup\"");
-        });
+        }) if ($dbServerHost eq $dbLocalhost);
 
         regSteps($s1, "Test db connectivity.", sub {
             runCmd("mysql -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"\"");
@@ -132,7 +135,7 @@ EOM
 global \$DB;
 
 \$DB['TYPE']     = 'MYSQL';
-\$DB['SERVER']   = 'localhost';
+\$DB['SERVER']   = '$dbServerHost';
 \$DB['PORT']     = '0';
 \$DB['DATABASE'] = '$zabbixDb';
 \$DB['USER']     = '$zabbixUser';
@@ -146,7 +149,7 @@ global \$DB;
 EOM
 
             my $confServer = << "EOM";
-DBHost=localhost
+DBHost=$dbServerHost
 DBName=$zabbixDb
 DBUser=$zabbixUser
 DBPassword=$zabbixPassword
@@ -246,7 +249,10 @@ Required. Specify server ip address.
 
 =item B<server.mysqlHost>
 
-Specify database host, if this option is not given, will setup a new MySQL instance on localhost.
+Specify database host.
+If this option is not given or set to localhost, will setup a new MySQL instance on localhost.
+Otherwise an existing mysql will be used.
+
 
 =item B<server.mysqlDbName>
 
