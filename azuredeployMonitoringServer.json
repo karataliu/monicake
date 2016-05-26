@@ -40,6 +40,13 @@
         "description": "Monitor vm password."
       }
     },
+    "mysqlHost":{
+      "type": "string",
+      "metadata": {
+        "description": "Backend MySQL host. Leave empty or 'localhost' for setting up new one on localhost."
+      },
+      "defaultValue": "localhost"
+    },
     "mysqlDbName":{
       "type": "string",
       "metadata": {
@@ -180,7 +187,7 @@
                       "https://raw.githubusercontent.com/karataliu/monicake/master/regTemplate",
                       "https://raw.githubusercontent.com/karataliu/monicake/master/templateAzureVmLinux.xml"
                     ],
-                    "commandToExecute": "[concat('./setup -v server -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=\"', parameters('mysqlPassword'),'\"')]"
+                    "commandToExecute": "[concat('./setup -v server -cserver.mysqlDbName=\"', parameters('mysqlHost'),'\" -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=\"', parameters('mysqlPassword'),'\"')]"
                 }
           }
         }

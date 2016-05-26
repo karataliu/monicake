@@ -40,6 +40,13 @@
         "description": "Monitor VM password."
       }
     },
+    "mysqlHost":{
+      "type": "string",
+      "metadata": {
+        "description": "Backend MySQL host. Leave empty or 'localhost' for setting up new one on localhost."
+      },
+      "defaultValue": "localhost"
+    },
     "mysqlDbName":{
       "type": "string",
       "metadata": {
@@ -80,6 +87,7 @@
           "subnetName":         {"value": "[parameters('subnetName')]"},
           "username":           {"value": "[parameters('username')]"},
           "password":           {"value": "[parameters('password')]"},
+          "mysqlHost":          {"value": "[parameters('mysqlHost')]"},
           "mysqlDbName":        {"value": "[parameters('mysqlDbName')]"},
           "mysqlUser":          {"value": "[parameters('mysqlUser')]"},
           "mysqlPassword":      {"value": "[parameters('mysqlPassword')]"}
