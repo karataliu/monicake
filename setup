@@ -50,7 +50,7 @@ my $optType     = shift || "help";
 
 my %flow = (
     agent   => sub {
-        unless (defined($config{'agent.serverIp'})){
+        unless ($config{'agent.serverIp'}){
             pod2usage(
                 -msg        => "agent.serverIp not set",
                 -sections   => "DESCRIPTION",
@@ -82,9 +82,16 @@ EOM
         return $s1;
     },
     server  => sub {
-        my $zabbixDb        = "zabbixdb";
-        my $zabbixUser      = "zabbix";
-        my $zabbixPassword  = "pabbix";
+        unless ($config{'server.mysqlDbName'} && $config{'server.mysqlUser'} && $config{'server.mysqlPassword'}){
+            pod2usage(
+                -msg        => "server configuration not well set",
+                -sections   => [qw(DESCRIPTION CONFIGKEY/SERVER)],
+                -verbose    => 99);
+        }
+
+        my $zabbixDb        = $config{'server.mysqlDbName'};
+        my $zabbixUser      = $config{'server.mysqlUser'};
+        my $zabbixPassword  = $config{'server.mysqlPassword'};
 
         my $s1 = [];
         regSteps($s1, "Install Zabbix Server package.", sub{
