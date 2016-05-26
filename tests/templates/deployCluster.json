@@ -28,7 +28,8 @@
     "apiSuffixes": [".core.windows.net", ".core.chinacloudapi.cn"],
     "location": "[tolower(resourceGroup().location)]",
     "locationTempSub": "[replace(variables('location'),'china','1234')]",
-    "apiSuffix": "[variables('apiSuffixes')[sub(length(variables('location')),length(variables('locationTempSub')))]]",
+    "locationIndex": "[sub(length(variables('location')),length(variables('locationTempSub')))]",
+    "apiSuffix": "[variables('apiSuffixes')[variables('locationIndex')]]",
     "blobApiSuffix": "[concat('.blob',variables('apiSuffix'))]",
     "imageReferences": [
       {
@@ -59,7 +60,8 @@
     "vmStorageAccountContainerName": "vhds",
     "vmName": "[concat(variables('prefix'),'vm')]",
     "vmSize": "Standard_DS2",
-    "storageAccountType": "Standard_LRS",
+    "storageAccountTypes": ["Premium_LRS", "Standard_LRS"],
+    "storageAccountType": "[variables('storageAccountTypes')[variables('locationIndex')]]",
     "VMCount": "[parameters('vmCount')]",
     "VMStart": 1,
     "adminUsername": "monicake"
