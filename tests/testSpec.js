@@ -133,6 +133,9 @@ function createMonitoring(rgName, prefix){
     },
     "password":{
       "value": "testPass&"
+    },
+    "mysqlPassword":{
+      "value": "testPass&1"
     }
   };
 
@@ -168,6 +171,9 @@ function createMonitoringServer(rgName, prefix, mock){
     },
     "password":{
       "value": "testPass&"
+    },
+    "mysqlPassword":{
+      "value": "testPass&1"
     }
   };
 
