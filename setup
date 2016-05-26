@@ -105,12 +105,17 @@ EOM
             installFile('/etc/apache2/conf-available/zabbix.conf', $confServerApachePhp)
             || runCmd("a2enconf zabbix");
         });
-        regSteps($s1, "Configure initial db.", sub{
+
+        regSteps($s1, "Create database.", sub{
             my $dbSetup = << "EOM";
 create database if not exists $zabbixDb character set utf8 collate utf8_bin;
 grant all privileges on $zabbixDb.* to $zabbixUser\@localhost identified by '$zabbixPassword';
 EOM
 
+            runCmd("mysql -e \"$dbSetup\"");
+        });
+
+        regSteps($s1, "Configure initial db.", sub{
             my $confServerPhp = << "EOM";
 <?php
 global \$DB;
@@ -141,8 +146,7 @@ START=yes
 CONFIG_FILE="/etc/zabbix/zabbix_server.conf"
 EOM
 
-            runCmd("mysql -e \"$dbSetup\"")
-            || runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz "
+            runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz "
                         ."/usr/share/zabbix-server-mysql/images.sql.gz "
                         ."/usr/share/zabbix-server-mysql/data.sql.gz ".
                         "|mysql -u$zabbixUser -p$zabbixPassword $zabbixDb")
