@@ -122,7 +122,11 @@ EOM
             runCmd("mysql -e \"$dbSetup\"");
         });
 
-        regSteps($s1, "Configure initial db.", sub{
+        regSteps($s1, "Test db connectivity.", sub {
+            runCmd("mysql -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"\"");
+        });
+
+        regSteps($s1, "Configure initial db.", sub {
             my $confServerPhp = << "EOM";
 <?php
 global \$DB;
