@@ -24,7 +24,7 @@
     }
   },
   "variables": {
-    "prefix": "[concat(parameters('prefix'),substring(uniqueString(resourceGroup().id),0,3))]",
+    "prefix": "[concat(parameters('prefix'),substring(uniqueString(resourceGroup().id),0,2))]",
     "apiSuffixes": [".core.windows.net", ".core.chinacloudapi.cn"],
     "location": "[tolower(resourceGroup().location)]",
     "locationTempSub": "[replace(variables('location'),'china','1234')]",
