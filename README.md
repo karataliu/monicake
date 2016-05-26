@@ -22,6 +22,7 @@ Deployment parameters:
 
 
 Deployment output
+
 | Output                | Description                                                                       |
 | -------------         | -------------                                                                     |
 | serverPublicEndpoint  | The frontend endpoint for the monitoring serice(aka monitoring portal).           |
