@@ -18,8 +18,7 @@
       "type": "string",
       "metadata": {
         "description": "The vnet name VMs connected to."
-      },
-      "defaultValue": "[resourceGroup().name]"
+      }
     },
     "subnetName":{
       "type": "string",
