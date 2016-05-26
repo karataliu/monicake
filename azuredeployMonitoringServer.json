@@ -39,6 +39,26 @@
       "metadata": {
         "description": "Monitor vm password."
       }
+    },
+    "mysqlDbName":{
+      "type": "string",
+      "metadata": {
+        "description": "Backend MySQL database name."
+      },
+      "defaultValue": "zabbixdb"
+    },
+    "mysqlUser":{
+      "type": "string",
+      "metadata": {
+        "description": "Backend MySQL user name."
+      },
+      "defaultValue": "zabbixuser"
+    },
+    "mysqlPassword":{
+      "type": "securestring",
+      "metadata": {
+        "description": "Backend MySQL password."
+      }
     }
   },
   "variables": {
@@ -160,7 +180,7 @@
                       "https://raw.githubusercontent.com/karataliu/monicake/master/regTemplate",
                       "https://raw.githubusercontent.com/karataliu/monicake/master/templateAzureVmLinux.xml"
                     ],
-                    "commandToExecute": "./setup -v server"
+                    "commandToExecute": "[concat('./setup -v server -cserver.mysqlDbName=\"', reference(parameters('mysqlDbName')), '\" -cserver.mysqlUser=\"', reference(parameters('mysqlUser')), '\" -cserver.mysqlPassword=\"', reference(parameters('mysqlPassword')),'\"')]"
                 }
           }
         }

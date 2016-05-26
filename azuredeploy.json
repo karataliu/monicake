@@ -18,7 +18,8 @@
       "type": "string",
       "metadata": {
         "description": "The vnet name VMs connected to."
-      }
+      },
+      "defaultValue": "[resourceGroup().name]"
     },
     "subnetName":{
       "type": "string",
@@ -38,6 +39,26 @@
       "type": "securestring",
       "metadata": {
         "description": "Monitor VM password."
+      }
+    },
+    "mysqlDbName":{
+      "type": "string",
+      "metadata": {
+        "description": "Backend MySQL database name."
+      },
+      "defaultValue": "zabbixdb"
+    },
+    "mysqlUser":{
+      "type": "string",
+      "metadata": {
+        "description": "Backend MySQL user name."
+      },
+      "defaultValue": "zabbixuser"
+    },
+    "mysqlPassword":{
+      "type": "securestring",
+      "metadata": {
+        "description": "Backend MySQL password."
       }
     }
   },
@@ -59,7 +80,10 @@
           "virtualNetworkName": {"value": "[parameters('virtualNetworkName')]"},
           "subnetName":         {"value": "[parameters('subnetName')]"},
           "username":           {"value": "[parameters('username')]"},
-          "password":           {"value": "[parameters('password')]"}
+          "password":           {"value": "[parameters('password')]"},
+          "mysqlDbName":        {"value": "[parameters('mysqlDbName')]"},
+          "mysqlUser":          {"value": "[parameters('mysqlUser')]"},
+          "mysqlPassword":      {"value": "[parameters('mysqlPassword')]"}
        }
      }
     },
