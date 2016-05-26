@@ -98,7 +98,7 @@ EOM
 
         my $s1 = [];
         regSteps($s1, "Install Zabbix Server package.", sub{
-            installPackageSuite("zabbix-server");
+            installPackageSuite("zabbix-server")
             || installPackageSuite("perl-jsonrpc");    # for regTemplate
         });
         regSteps($s1, "Configure apache.", sub{
