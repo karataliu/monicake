@@ -184,7 +184,6 @@
                     "fileUris": [
                       "https://raw.githubusercontent.com/karataliu/monicake/master/setup",
                       "https://raw.githubusercontent.com/karataliu/monicake/master/util.pm",
-                      "https://raw.githubusercontent.com/karataliu/monicake/master/regTemplate",
                       "https://raw.githubusercontent.com/karataliu/monicake/master/templateAzureVmLinux.xml"
                     ],
                     "commandToExecute": "[concat('./setup -v server -cserver.mysqlHost=\"', parameters('mysqlHost'),'\" -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=\"', parameters('mysqlPassword'),'\"')]"
