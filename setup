@@ -58,8 +58,8 @@ my %flow = (
         }
         
         my $zabbixServerIp = $config{'agent.serverIp'};
-        use Sys::Hostname;
-        my $host = hostname;
+        require Sys::Hostname;
+        my $host = &Sys::Hostname::hostname;
         my $confAgent = << "EOM";
 Hostname=$host
 PidFile=/var/run/zabbix/zabbix_agentd.pid
@@ -101,8 +101,7 @@ EOM
 
         my $s1 = [];
         regSteps($s1, "Install Zabbix Server package.", sub{
-            installPackageSuite("zabbix-server")
-            || installPackageSuite("perl-jsonrpc");    # for regTemplate
+            installPackageSuite("zabbix-server");
         });
         regSteps($s1, "Configure apache.", sub{
             my $confServerApachePhp = << 'EOM';
@@ -175,8 +174,84 @@ EOM
             runCmd("service apache2 restart")
             || runCmd("service zabbix-server restart");
         });
-        regSteps($s1, "Configure azure specific tempalte.", sub{
-            runCmd("perl regTemplate");
+        regSteps($s1, "Configure azure specific tempalte.", sub {
+            installPackageSuite("perl-jsonrpc");    # for regTemplate
+            require JSON::RPC::Legacy::Client;
+            our $client      = new JSON::RPC::Legacy::Client;
+            my $endpoint    = 'http://127.0.0.1/zab/';
+            our $uri         = $endpoint."api_jsonrpc.php";
+
+            sub callrpc
+            {
+                my $callobj = shift;
+                my $res = $client->call($uri, $callobj);
+
+                if($res) {
+                    if ($res->is_error) {
+                        say "Error : ", $res->error_message;
+                        exit(1);
+                    }
+                    else {
+                        return $res->result;
+                    }
+                }
+                else {
+                    say "Error code: ", $client->status_line;
+                    exit(2);
+                }
+            }
+
+            my $authRequest = 
+            {
+                "jsonrpc", "2.0",
+                "method", "user.login",
+                "params", {
+                    "user", "Admin",
+                    "password", "zabbix"
+                },
+                "id", 0,
+                "auth", undef
+            };
+
+            my $token = callrpc($authRequest);
+
+            open FL,'<','templateAzureVmLinux.xml';
+            my $xml;
+            {
+                local $/ = undef;
+                $xml = <FL>;
+            }
+            close FL;
+
+            my $importRequest  = 
+            {
+                "jsonrpc", "2.0",
+                "method", "configuration.import",
+                "params", {
+                    "format", "xml",
+                    "rules", {
+                        "templates", {
+                            "createMissing", 1
+                        },
+                        "items", {
+                            "createMissing", 1
+                        },
+                        "triggers",{
+                            "createMissing", 1
+                        },
+                        "templateLinkage",{
+                            "createMissing", 1
+                        },
+                    },
+                    "source", "$xml"
+                },
+                "auth", "$token",
+                "id", 1
+            };
+
+            callrpc($importRequest);
+
+            return 0;
         });
         regSteps($s1, "Configure autoreg.", sub{
             my $autoRegSetup = <<'EOM';
