@@ -17,13 +17,13 @@
     "virtualNetworkName":{
       "type": "string",
       "metadata": {
-        "description": "The vnet name VMs connected to."
+        "description": "The vnet name the monitor VM connects to."
       }
     },
     "subnetName":{
       "type": "string",
       "metadata": {
-        "description": "The subnet name VMs connected to."
+        "description": "The subnet name the monitor VM connects to, also agents will also be installed on those VMs."
       },
       "defaultValue": "default"
     },
@@ -43,28 +43,28 @@
     "mysqlHost":{
       "type": "string",
       "metadata": {
-        "description": "Backend MySQL host. Leave empty or 'localhost' for setting up new one on localhost."
+        "description": "Monitoring service backend MySQL host. Using 'localhost' here will set up a new MySQL instance on the monitor VM."
       },
       "defaultValue": "localhost"
     },
     "mysqlDbName":{
       "type": "string",
       "metadata": {
-        "description": "Backend MySQL database name."
+        "description": "Monitoring service backend MySQL database name."
       },
       "defaultValue": "zabbixdb"
     },
     "mysqlUser":{
       "type": "string",
       "metadata": {
-        "description": "Backend MySQL user name."
+        "description": "Monitoring service backend MySQL user name."
       },
       "defaultValue": "zabbixuser"
     },
     "mysqlPassword":{
       "type": "securestring",
       "metadata": {
-        "description": "Backend MySQL password."
+        "description": "Monitoring service backend MySQL password."
       }
     }
   },
