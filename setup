@@ -58,7 +58,10 @@ my %flow = (
         }
         
         my $zabbixServerIp = $config{'agent.serverIp'};
+        use Sys::Hostname;
+        $host = hostname;
         my $confAgent = << "EOM";
+Hostname=$host
 PidFile=/var/run/zabbix/zabbix_agentd.pid
 Server=$zabbixServerIp
 ServerActive=$zabbixServerIp
