@@ -1,13 +1,14 @@
 #!/usr/bin/env perl
+package main;
 
 use 5.010;
 use strict;
 use warnings;
 use Getopt::Long;
 use Pod::Usage;
-use util qw(installFile installPackageSuite runCmd runSteps regSteps enableService :logging);
+import util;
 
-our $VERSION    = 0.1.7;
+our $VERSION    = 0.1.8;
 
 my %config      = (
     "agent.serverIp"       => undef,
@@ -269,6 +270,207 @@ EOM
 my $getSteps = $flow{$optType};
 pod2usage(1) unless $getSteps;
 runSteps(&$getSteps);
+
+BEGIN{
+package util;
+
+use 5.010;
+use strict;
+use warnings;
+use Exporter qw(import);
+
+our @EXPORT        = qw(installFile installPackageSuite runCmd runSteps regSteps enableService
+    LOGDEBUG LOGINFO LOGWARN LOGERR info);
+our %EXPORT_TAGS    = (logging => [qw(LOGDEBUG LOGINFO LOGWARN LOGERR info)]);
+
+my $rpmRepo = "http://doliutm.trafficmanager.net/zabbix/2.2/rhel/7/x86_64/zabbix-release-2.2-1.el7.noarch.rpm";
+
+use constant {
+    LOGDEBUG  => 1,
+    LOGINFO   => 2,
+    LOGWARN   => 3,
+    LOGERR    => 4,
+};
+
+our $verbose        = LOGINFO;
+our $dryrun         = 1;
+our $defaultRetry   = 2;
+our $defaultSleep   = 5;
+
+sub installFile
+{
+    my $path        = shift;
+    my $content     = shift;
+    my $FL;
+
+    return 0 if $dryrun;
+
+    open($FL, '>', $path);
+    print $FL $content;
+    close $FL;
+    return 0;
+}
+
+sub setLogLevel
+{
+    $verbose = shift;
+}
+
+sub info
+{
+    my $msg     = shift;
+    my $level   = shift || LOGINFO;
+
+    return if ($verbose > $level);
+    say "[MONICAKE] $msg";
+}
+
+sub runCmd
+{
+    my $cmd = shift;
+    if ($verbose >= LOGINFO) { $cmd .= " >/dev/null"; }
+
+    info "Run command:\n$cmd", LOGDEBUG;
+    return 0 if $dryrun;
+
+    my $ret = system($cmd);
+    if ($ret){
+        info "Return code is $ret", LOGDEBUG;
+    }
+
+    return $ret;
+}
+
+
+my %suites = (
+    "zabbix-agent"      => ['zabbix-agent'],
+    "zabbix-server"     => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql', 'mysql-client'],
+    "mysql-server"      => ['mysql-server'],
+    "perl-jsonrpc"      => ['libjson-rpc-perl'],
+);
+
+sub installPackageSuite
+{
+    my $packageSuite    = shift;
+    my $packageManager  = getPackageManager();
+    return 1 unless $packageManager;
+
+    my $packageInstall  = $$packageManager{install};
+
+    unless(exists $suites{$packageSuite}){
+        info("Package suite $packageSuite not supported.");
+        exit(4);
+    }
+
+    my $packagesRef = $suites{$packageSuite};
+    my $packageLine = join(" ", @$packagesRef);
+    my $cmd = "$packageInstall $packageLine";
+    info "Begin install packages:$packageLine", LOGDEBUG;
+    my $ret = runCmd($cmd);
+    if (!$ret){
+        info("Install succeed.", LOGDEBUG);
+    }else{
+        info("Install failed. Try update.", LOGDEBUG);
+        my $packageUpdate = $$packageManager{refresh};
+        runCmd($packageUpdate);
+        $ret = runCmd($cmd);
+        if (!$ret){
+            info("Install succeed.", LOGDEBUG);
+        }else{
+            info("Install failed.", LOGDEBUG);
+        }
+    }
+
+    return $ret;
+}
+
+sub getPackageManager()
+{
+    my %pm  = (
+        aptitude    => {
+            install => "DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install",
+            refresh => "apt-get update"
+        },
+        yum         => {
+            install => "yum -y install",
+            refresh => "rpm -q zabbix-release || rpm -ivh $rpmRepo"
+        }
+    );
+
+    return $pm{aptitude}    unless runCmd('which apt-get 2> /dev/null');
+    return $pm{yum}         unless runCmd('which yum 2> /dev/null');
+
+    info("Package manager not supported.", LOGERR);
+    exit(3);
+}
+
+sub regSteps
+{
+    my $steps       = shift;
+    my $name        = shift;
+    my $sub         = shift;
+    push @$steps, {
+        name    => $name,
+        run     => $sub,
+    };
+}
+
+sub runSteps
+{
+    my $steps   = shift;
+    my $len     = @$steps;
+    my $index   = 0;
+    foreach my $step (@$steps){
+        ++$index;
+        info "($index/$len) $$step{name}";
+        my $run = $$step{run};
+        my $ret = &$run;
+        my $retry = $defaultRetry;
+        while ($ret && $retry){
+            info "failed with code: $ret, $retry retries remaining. Sleep for $defaultSleep seconds...";
+            sleep($defaultSleep);
+            --$retry;
+            $ret = &$run;
+        }
+
+        if ($ret){
+            info "failed with code: $ret";
+            exit(2);
+        }
+    }
+}
+
+sub enableService
+{
+    my $serviceName     = shift;
+    my $serviceManager  = getServiceManager();
+    return 1 unless $serviceManager;
+    my $cmd = sprintf $$serviceManager{enable}, $serviceName;
+    my $ret = runCmd($cmd);
+    
+    return $ret;
+}
+
+sub getServiceManager
+{
+     my %pm  = (
+        systemctl    => {
+            enable => "systemctl enable %s",
+        },
+        upstart      => {
+            enable => "echo %s",
+        }
+    );
+
+    return $pm{systemctl}       unless runCmd('which systemctl 2> /dev/null');
+    return $pm{upstart}         unless runCmd('which status 2> /dev/null');
+
+    info("Service manager not supported.", LOGERR);
+    exit(3);
+}
+
+1;
+}
 
 __END__
 =head1 NAME

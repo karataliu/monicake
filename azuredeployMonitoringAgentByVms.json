@@ -34,8 +34,7 @@
             "typeHandlerVersion": "1.4",
             "settings":{
                 "fileUris": [
-                  "https://raw.githubusercontent.com/karataliu/monicake/master/setup",
-                  "https://raw.githubusercontent.com/karataliu/monicake/master/util.pm"
+                  "https://raw.githubusercontent.com/karataliu/monicake/master/setup"
                 ],
                 "commandToExecute": "[concat('./setup -v agent -c agent.serverIp=', parameters('serverIp'))]"
             }

@@ -1,3 +1,6 @@
+v 0.1.8
+Merge util.pm
+
 v0.1.7
 Support Custom mysql configuration.
 Merge template registerition to setup.
