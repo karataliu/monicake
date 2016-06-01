@@ -11,7 +11,7 @@ import util;
 our $VERSION    = 0.1.8;
 
 my %config      = (
-    "agent.serverIp"       => undef,
+    "agent.serverIp"        => undef,
     "server.mysqlHost"      => undef,
     "server.mysqlDbName"    => undef,
     "server.mysqlUser"      => undef,
