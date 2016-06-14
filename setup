@@ -61,11 +61,17 @@ my %flow = (
         my $zabbixServerIp = $config{'agent.serverIp'};
         require Sys::Hostname;
         my $host = &Sys::Hostname::hostname;
+
+        my $confAgentDir = "/etc/zabbix/zabbix_agentd.conf.d";
         my $confAgent = << "EOM";
 Hostname=$host
 PidFile=/var/run/zabbix/zabbix_agentd.pid
 Server=$zabbixServerIp
 ServerActive=$zabbixServerIp
+Include=$confAgentDir
+EOM
+
+        my $confAzureVM = <<"EOM";
 UserParameter=azure.vm.agent.alive,ps aux |grep -c "[w]aagent -daemon"
 EOM
 
@@ -74,7 +80,9 @@ EOM
             installPackageSuite("zabbix-agent");
         });
         regSteps($s1, "Config zabbix agent.", sub {
-            installFile('/etc/zabbix/zabbix_agentd.conf', $confAgent);
+            installFile('/etc/zabbix/zabbix_agentd.conf', $confAgent)
+            || runCmd("mkdir -p $confAgentDir")
+            || installFile("$confAgentDir/azure_vm.conf", $confAzureVM);
         });
         regSteps($s1, "Enable Zabbix Agent service.", sub {
             enableService('zabbix-agent');
