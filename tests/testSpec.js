@@ -5,7 +5,7 @@ var assert    = chai.assert;
 var phantom = require('phantom');
 chai.use(require("chai-as-promised"));
 
-xdescribe('Step Test', function() {
+describe('Step Test', function() {
   var resourceGroup;
   var prefix;
 
@@ -20,8 +20,8 @@ xdescribe('Step Test', function() {
       t1.then(function(dat){
         resourceGroup = dat.resourceGroup;
         prefix = dat.prefix;
-        assert(prefix.startsWith(conf.prefix), "prefix not starts with expected");
-        assert(resourceGroup.startsWith(conf.prefix), "rg not starts with expected");
+        assert(prefix.startsWith(conf.resourcePrefix), "prefix not starts with expected");
+        assert(resourceGroup.startsWith(conf.resourcePrefix), "rg not starts with expected");
       })
     ]);
   });
@@ -40,14 +40,14 @@ xdescribe('Step Test', function() {
     ]);
   });
 
-  it('CreateMonitoringAgents', function () {
+  xit('CreateMonitoringAgents', function () {
     assert(serverInternalIp, "serverInternalIp should not be empty");
     this.timeout(1000*550);
     var t1 = assert.isFulfilled(createMonitoringAgentsByVnet(resourceGroup, prefix, serverInternalIp));
     return t1;
   });
 
-  it('VerifyPage', function(){
+  xit('VerifyPage', function(){
     this.retries(2);
     assert(serverPublicEndpoint, "serverPublicEndpoint should not be empty");
     this.timeout(1000*20);
@@ -62,7 +62,7 @@ xdescribe('Step Test', function() {
   });
 });
 
-describe('One Test', function() {
+xdescribe('One Test', function() {
   var serverPublicEndpoint;
 
   it('CreateTestEnv', function () {

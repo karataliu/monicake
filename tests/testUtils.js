@@ -7,7 +7,7 @@ var client      = utils.createResourceClient(profile.current.getSubscription());
 
 function createTestResourceGroup(){
     var name    = new Date().toISOString().replace(new RegExp(':','g'),'-');
-    var rgName  = conf.prefix + name;
+    var rgName  = conf.resourcePrefix + name;
     var tags    = {};
     tags[conf.tagName] = '1';
 
@@ -46,11 +46,18 @@ function createDeployment(rgName, template, templateParameters){
 }
 
 function createTestEnvDeployment(rgName){
-  var template = require('./templates/deployCluster.json');
-  var templateParameters = require('./templates/deployCluster.parameters.json').parameters;
-  templateParameters.prefix = {"value": conf.prefix};
-  templateParameters.vmCount = {"value": conf.vmCount};
-  templateParameters.adminPublicKey = {"value": conf.adminPublicKey};
+  var template = require('../nested/clusterNodes.json');
+  var templateParameters = {
+    "resourcePrefix": {
+      "value": conf.resourcePrefix
+    },
+    "adminPassword": {
+      "value": conf.adminPassword
+    },
+    "vmCount": {
+      "value": conf.vmCount
+    }
+  };
   return createDeployment(rgName, template, templateParameters);
 }
 
