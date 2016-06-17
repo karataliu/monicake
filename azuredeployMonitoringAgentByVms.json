@@ -2,44 +2,45 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "vmNames":{
-        "type": "array",
-        "metadata": {
-          "description": "vm name list."
-        }
+    "vmNames": {
+      "type": "array",
+      "metadata": {
+        "description": "vm name list."
+      }
     },
-    "serverIp":{
-        "type": "string",
-        "metadata": {
-          "description": "server ip."
-        }
+    "serverIp": {
+      "type": "string",
+      "metadata": {
+        "description": "server ip."
+      }
     }
   },
   "variables": {
-      "location": "[resourceGroup().location]"
+    "location": "[resourceGroup().location]"
   },
   "resources": [
     {
       "name": "[concat(parameters('vmNames')[copyIndex()],'/configMonitoring')]",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "copy": {
-         "name": "vmCopy",
-         "count": "[length(parameters('vmNames'))]"
+        "name": "vmCopy",
+        "count": "[length(parameters('vmNames'))]"
       },
       "apiVersion": "2015-06-15",
       "location": "[variables('location')]",
       "properties": {
-            "publisher": "Microsoft.OSTCExtensions",
-            "type": "CustomScriptForLinux",
-            "typeHandlerVersion": "1.4",
-            "settings":{
-                "fileUris": [
-                  "https://raw.githubusercontent.com/karataliu/monicake/master/setup"
-                ],
-                "commandToExecute": "[concat('./setup -v agent -c agent.serverIp=', parameters('serverIp'))]"
-            }
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "1.4",
+        "settings": {
+          "fileUris": [
+            "https://raw.githubusercontent.com/karataliu/monicake/master/setup"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('./setup -v agent -c agent.serverIp=', parameters('serverIp'))]"
+        }
       }
     }
   ]
 }
-

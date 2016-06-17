@@ -40,14 +40,14 @@ describe('Step Test', function() {
     ]);
   });
 
-  xit('CreateMonitoringAgents', function () {
+  it('CreateMonitoringAgents', function () {
     assert(serverInternalIp, "serverInternalIp should not be empty");
     this.timeout(1000*550);
     var t1 = assert.isFulfilled(createMonitoringAgentsByVnet(resourceGroup, prefix, serverInternalIp));
     return t1;
   });
 
-  xit('VerifyPage', function(){
+  it('VerifyPage', function(){
     this.retries(2);
     assert(serverPublicEndpoint, "serverPublicEndpoint should not be empty");
     this.timeout(1000*20);

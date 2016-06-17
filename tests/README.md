@@ -19,13 +19,13 @@ grunt
 ```
 
 4. Test config 
-Testing config is located at conf.js 
+Testing config is located at conf.json
 {
     "location": "westus",
-    "prefix": "",
+    "resourcePrefix": "",
     "tagName": "",
     "vmCount": 2,
-    "adminPublicKey": ""
+    "adminPassword": ""
 }
 
 Set the following Environment variable with MONICAKE_ prefix to customize your testing.

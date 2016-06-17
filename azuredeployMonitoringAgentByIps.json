@@ -8,18 +8,18 @@
         "description": "ipConfigurations info."
       }
     },
-    "serverIp":{
-        "type": "string",
-        "metadata": {
-          "description": "server ip."
-        }
+    "serverIp": {
+      "type": "string",
+      "metadata": {
+        "description": "server ip."
+      }
     },
-    "subdepPrefix":{
-        "type": "string",
-        "metadata": {
-          "description": "server ip."
-        },
-        "defaultValue": "subConfigMonitoringAgent-"
+    "subdepPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "server ip."
+      },
+      "defaultValue": "subConfigMonitoringAgent-"
     }
   },
   "variables": {
@@ -32,19 +32,25 @@
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
       "copy": {
-         "name": "vmCopy",
-         "count": "[length(variables('nics'))]"
+        "name": "vmCopy",
+        "count": "[length(variables('nics'))]"
       },
       "properties": {
-       "mode": "Incremental",
-       "templateLink": {
+        "mode": "Incremental",
+        "templateLink": {
           "uri": "https://raw.githubusercontent.com/karataliu/monicake/master/azuredeployMonitoringAgentByVms.json",
           "contentVersion": "1.0.0.0"
-       }, 
-       "parameters": {
-          "vmNames":{"value": ["[replace(reference(concat(variables('nics')[copyIndex()].id, '/../../'), '2016-03-30').virtualMachine.id, variables('vmidPrefix'),'')]"] },
-          "serverIp":{"value": "[parameters('serverIp')]"}
-       }
+        },
+        "parameters": {
+          "vmNames": {
+            "value": [
+              "[replace(reference(concat(variables('nics')[copyIndex()].id, '/../../'), '2016-03-30').virtualMachine.id, variables('vmidPrefix'),'')]"
+            ]
+          },
+          "serverIp": {
+            "value": "[parameters('serverIp')]"
+          }
+        }
       }
     }
   ]
