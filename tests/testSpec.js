@@ -155,7 +155,7 @@ function createMonitoringServer(rgName, prefix, mock){
     { serverInternalIp: '192.168.0.6',
       serverPublicEndpoint: 'http://doliumtinqkd7damvphumon.westus.cloudapp.azure.com/zab/' });
 
-  var template = require('../azuredeployMonitoringServer.json');
+  var template = require('../nested/monitoringServer.json');
   var templateParameters = {
     "monitorVmName": {
       "value": prefix + "mon"
@@ -192,7 +192,7 @@ function createMonitoringAgentsByVnet(rgName, prefix, serverIp, mock){
     return Promise.resolve();
   }
   
-  var template = require('../azuredeployMonitoringAgentByVnet.json');
+  var template = require('../nested/monitoringAgentByVnet.json');
   var templateParameters = {
     "virtualNetworkName":{
       "value": prefix + "vnet"
