@@ -41,7 +41,7 @@
         "typeHandlerVersion": "1.4",
         "settings": {
           "fileUris": [
-            "[concat(parameters('_artifactsLocation'), '/setup')]"
+            "[concat(parameters('_artifactsLocation'), '/scripts/setup')]"
           ]
         },
         "protectedSettings": {

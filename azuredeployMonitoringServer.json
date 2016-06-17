@@ -66,6 +66,13 @@
       "metadata": {
         "description": "Monitoring service backend MySQL password."
       }
+    },
+    "_artifactsLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
+      },
+      "defaultValue": "https://raw.githubusercontent.com/karataliu/monicake/master"
     }
   },
   "variables": {
@@ -178,8 +185,8 @@
             "typeHandlerVersion": "1.4",
             "settings": {
               "fileUris": [
-                "https://raw.githubusercontent.com/karataliu/monicake/master/setup",
-                "https://raw.githubusercontent.com/karataliu/monicake/master/templateAzureVmLinux.xml"
+                "[concat(parameters('_artifactsLocation'), '/scripts/setup')]",
+                "[concat(parameters('_artifactsLocation'), '/scripts/templateAzureVmLinux.xml')]"
               ]
             },
             "protectedSettings": {
