@@ -62,7 +62,7 @@ describe('Step Test', function() {
   });
 });
 
-xdescribe('One Test', function() {
+describe('One Test', function() {
   var serverPublicEndpoint;
 
   it('CreateTestEnv', function () {
@@ -73,8 +73,8 @@ xdescribe('One Test', function() {
       t1.then(function(dat){
         resourceGroup = dat.resourceGroup;
         prefix = dat.prefix;
-        assert(prefix.startsWith(conf.prefix), "prefix not starts with expected");
-        assert(resourceGroup.startsWith(conf.prefix), "rg not starts with expected");
+        assert(prefix.startsWith(conf.resourcePrefix), "prefix not starts with expected");
+        assert(resourceGroup.startsWith(conf.resourcePrefix), "rg not starts with expected");
       })
     ]);
   });
