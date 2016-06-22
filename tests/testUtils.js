@@ -4,10 +4,11 @@ var conf        = require('./conf');
 var utils       = require('azure-cli/lib/util/utils');
 var profile     = require("azure-cli/lib/util/profile");
 var client      = utils.createResourceClient(profile.current.getSubscription());
+var dateStr     = new Date().toISOString().replace(new RegExp(':','g'),'-');
+var dateHash    = require('crypto').createHash('md5').update(dateStr).digest('hex').substring(0,2);
 
 function createTestResourceGroup(){
-    var name    = new Date().toISOString().replace(new RegExp(':','g'),'-');
-    var rgName  = conf.resourcePrefix + name;
+    var rgName  = conf.resourcePrefix + dateStr;
     var tags    = {};
     tags[conf.tagName] = '1';
 
@@ -49,7 +50,7 @@ function createTestEnvDeployment(rgName){
   var template = require('../nested/clusterNodes.json');
   var templateParameters = {
     "resourcePrefix": {
-      "value": conf.resourcePrefix
+      "value": conf.resourcePrefix + dateHash
     },
     "adminPassword": {
       "value": conf.adminPassword
