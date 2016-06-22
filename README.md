@@ -31,17 +31,22 @@ Deployment output
 | serverPublicEndpoint  | The frontend endpoint for the monitoring serice(aka monitoring portal).           |
 
 
-- azuredeployMonitoringServer.json
+- nested/clusterNodes.json
+This will deploy a testing cluster, for testing, please deploy this one first before other templates.
+
+[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fnested%2FclusterNodes.json)
+
+- nested/monitoringServer.json
 This will install monitoring server only.
 
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fnested%2FmonitoringServer.json)
 
-- azuredeployMonitoringAgentByVnet.json
+- nested/onitoringAgentByVnet.json
 This will install monitoring agents for given vnet/subnet.
 
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fnested%2FmonitoringAgentByVnet.json)
 
-- azuredeployMonitoringAgentByVms.json
+- nested/onitoringAgentByVms.json
 This will install monitoring agents for given Vms.
 
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fnested%2FmonitoringAgentByVms.json)
