@@ -4,11 +4,9 @@ var conf        = require('./conf');
 var utils       = require('azure-cli/lib/util/utils');
 var profile     = require("azure-cli/lib/util/profile");
 var client      = utils.createResourceClient(profile.current.getSubscription());
-var dateStr     = new Date().toISOString().replace(new RegExp(':','g'),'-');
-var dateHash    = require('crypto').createHash('md5').update(dateStr).digest('hex').substring(0,2);
+var crypto      = require('crypto');
 
-function createTestResourceGroup(){
-    var rgName  = conf.resourcePrefix + dateStr;
+function createTestResourceGroup(rgName){
     var tags    = {};
     tags[conf.tagName] = '1';
 
@@ -46,11 +44,11 @@ function createDeployment(rgName, template, templateParameters){
   });
 }
 
-function createTestEnvDeployment(rgName){
+function createTestEnvDeployment(rgName, resourcePrefix){
   var template = require('../nested/clusterNodes.json');
   var templateParameters = {
     "resourcePrefix": {
-      "value": conf.resourcePrefix + dateHash
+      "value": resourcePrefix
     },
     "adminPassword": {
       "value": conf.adminPassword
@@ -62,11 +60,6 @@ function createTestEnvDeployment(rgName){
   return createDeployment(rgName, template, templateParameters);
 }
 
-function createTestOutput(rgName){
-  var template = require('./templates/testOutput.json');
-  return createDeployment(rgName, template, {});
-}
-
 exports.createDeployment = createDeployment;
 
 exports.createTestEnv = function(mock){
@@ -76,7 +69,12 @@ exports.createTestEnv = function(mock){
       prefix: 'doliumtinqkd7damvphu' });
   }
   
-  return createTestResourceGroup().then(createTestEnvDeployment).then(function(res){
+  var dateStr     = new Date().toISOString().replace(new RegExp(':','g'),'-');
+  var dateHash    = crypto.createHash('md5').update(dateStr).digest('hex').substring(0,2);
+
+  return createTestResourceGroup(conf.resourcePrefix + dateStr).then(function (rg){
+    return createTestEnvDeployment(rg, conf.resourcePrefix + dateHash);
+  }).then(function(res){
     var outputs = res.properties.outputs;
     return {
       "resourceGroup" : outputs.resourceGroup.value,
