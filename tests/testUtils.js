@@ -13,16 +13,15 @@ function getGitBranch() {
       if (error) {
         reject(error); return;
       }
-
       resolve(stdout.trim());
-    })
+    });
   });
-};
+}
 
 function getArtifactsLocation() {
   return getGitBranch().then(function (branch) {
     return "https://raw.githubusercontent.com/karataliu/monicake/" + branch;
-  })
+  });
 }
 
 function createTestResourceGroup(rgName) {
@@ -50,7 +49,7 @@ function createDeployment(rgName, template, templateParameters) {
     if (template.parameters._artifactsLocation) {
       templateParameters._artifactsLocation = {
         "value": location
-      }
+      };
     }
 
     var parameters = {
