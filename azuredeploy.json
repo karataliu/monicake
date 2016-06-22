@@ -117,6 +117,9 @@
           },
           "mysqlPassword": {
             "value": "[parameters('mysqlPassword')]"
+          },
+          "_artifactsLocation": {
+            "value": "[parameters('_artifactsLocation')]"
           }
         }
       }
@@ -143,6 +146,9 @@
           },
           "serverIp": {
             "value": "[reference('configMonitoringServerVM').outputs.serverInternalIp.value]"
+          },
+          "_artifactsLocation": {
+            "value": "[parameters('_artifactsLocation')]"
           }
         }
       }
