@@ -131,7 +131,7 @@ function createMonitoring(rgName, prefix){
     "subnetName":{
       "value": "default"
     },
-    "password":{
+    "monitorVmPassword":{
       "value": "testPass&"
     },
     "mysqlPassword":{

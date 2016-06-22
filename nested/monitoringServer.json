@@ -27,14 +27,14 @@
       },
       "defaultValue": "default"
     },
-    "username": {
+    "adminUsername": {
       "type": "string",
       "metadata": {
         "description": "Monitor VM user name."
       },
       "defaultValue": "monitoruser"
     },
-    "password": {
+    "adminPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Monitor VM password."
@@ -148,8 +148,8 @@
         },
         "osProfile": {
           "computerName": "[concat(variables('vmName'))]",
-          "adminUsername": "[parameters('username')]",
-          "adminPassword": "[parameters('password')]"
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
           "osDisk": {

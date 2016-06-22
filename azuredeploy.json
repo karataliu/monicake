@@ -27,14 +27,14 @@
       },
       "defaultValue": "default"
     },
-    "username": {
+    "monitorVmUsername": {
       "type": "string",
       "metadata": {
         "description": "Monitor VM user name."
       },
       "defaultValue": "monitoruser"
     },
-    "password": {
+    "monitorVmPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Monitor VM password."
@@ -101,10 +101,10 @@
             "value": "[parameters('subnetName')]"
           },
           "username": {
-            "value": "[parameters('username')]"
+            "value": "[parameters('monitorVmUsername')]"
           },
           "password": {
-            "value": "[parameters('password')]"
+            "value": "[parameters('monitorVmPassword')]"
           },
           "mysqlHost": {
             "value": "[parameters('mysqlHost')]"
