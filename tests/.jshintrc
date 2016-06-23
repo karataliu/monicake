@@ -1,8 +1,5 @@
 {
   "node": true,
-  "esnext": true,
-  "globals": {
-  },
-  "predef": [ "-Promise" ]
+  "esnext": true
 }
 
