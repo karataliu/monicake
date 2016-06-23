@@ -1,36 +1,29 @@
 // Testing util using default account.
+"use strict";
 
 var conf = require('./conf');
-var utils = require('azure-cli/lib/util/utils');
-var profile = require("azure-cli/lib/util/profile");
-var client = utils.createResourceClient(profile.current.getSubscription());
+var client = require('azure-cli/lib/util/utils')
+  .createResourceClient(require("azure-cli/lib/util/profile").current.getSubscription());
 var crypto = require('crypto');
 var exec = require('child_process').exec;
 
-function getGitBranch() {
+const artifactsLocationBase = "https://raw.githubusercontent.com/karataliu/monicake/";
+
+function getArtifactsLocation() {
   return new Promise(function (resolve, reject) {
     exec("git rev-parse --abbrev-ref HEAD", function (error, stdout) {
-      if (error) {
-        reject(error); return;
-      }
-      resolve(stdout.trim());
+      if (error) reject(error);
+      else resolve(artifactsLocationBase + stdout.trim());
     });
   });
 }
 
-function getArtifactsLocation() {
-  return getGitBranch().then(function (branch) {
-    return "https://raw.githubusercontent.com/karataliu/monicake/" + branch;
-  });
-}
-
 function createTestResourceGroup(rgName) {
-  var tags = {};
-  tags[conf.tagName] = '1';
-
-  var parameters = {
+  const parameters = {
     "location": conf.location,
-    "tags": tags
+    "tags": {
+      [conf.tagName]: '1'
+    }
   };
 
   console.log("Creating resource group %s at location %s.", rgName, conf.location);
@@ -45,14 +38,18 @@ function createTestResourceGroup(rgName) {
 }
 
 function createDeployment(rgName, template, templateParameters) {
-  return getArtifactsLocation().then(function (location) {
+  return new Promise(function (resolve, reject) {
     if (template.parameters._artifactsLocation) {
-      templateParameters._artifactsLocation = {
-        "value": location
-      };
+      getArtifactsLocation().then(location => {
+        templateParameters._artifactsLocation = {
+          "value": location
+        };
+      }).then(resolve);
+    } else {
+      resolve();
     }
-
-    var parameters = {
+  }).then(function () {
+    const parameters = {
       "properties": {
         "template": template,
         "parameters": templateParameters,
@@ -71,8 +68,7 @@ function createDeployment(rgName, template, templateParameters) {
 }
 
 function createTestEnvDeployment(rgName, resourcePrefix) {
-  var template = require('../nested/clusterNodes.json');
-  var templateParameters = {
+  return createDeployment(rgName, require('../nested/clusterNodes.json'), {
     "resourcePrefix": {
       "value": resourcePrefix
     },
@@ -82,23 +78,18 @@ function createTestEnvDeployment(rgName, resourcePrefix) {
     "vmCount": {
       "value": conf.vmCount
     }
-  };
-  return createDeployment(rgName, template, templateParameters);
+  });
 }
 
 exports.createDeployment = createDeployment;
 
 exports.createTestEnv = function (mock) {
   if (mock) {
-    return Promise.resolve(
-      {
-        resourceGroup: 'doliumt2016-04-27T09-29-47.419Z',
-        prefix: 'doliumtinqkd7damvphu'
-      });
+    return Promise.resolve(mock);
   }
 
-  var dateStr = new Date().toISOString().replace(new RegExp(':', 'g'), '-');
-  var dateHash = crypto.createHash('md5').update(dateStr).digest('hex').substring(0, 2);
+  const dateStr = new Date().toISOString().replace(new RegExp(':', 'g'), '-');
+  const dateHash = crypto.createHash('md5').update(dateStr).digest('hex').substring(0, 2);
 
   return createTestResourceGroup(conf.resourcePrefix + dateStr).then(function (rg) {
     return createTestEnvDeployment(rg, conf.resourcePrefix + dateHash);
@@ -127,8 +118,7 @@ exports.delResourceGroup = function (rgName) {
       if (err) reject(err);
       else resolve(rgName);
     });
-  })
-    .then(function () {
-      console.log("Deleted: %s.", rgName);
-    });
+  }).then(function () {
+    console.log("Deleted: %s.", rgName);
+  });
 };
