@@ -81,7 +81,7 @@
       },
       "defaultValue": ""
     },
-    "smtpPassowrd": {
+    "smtpPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Smtp password."
@@ -145,8 +145,8 @@
           "smtpUser": {
             "value": "[parameters('smtpUser')]"
           },
-          "smtpPassowrd": {
-            "value": "[parameters('smtpPassowrd')]"
+          "smtpPassword": {
+            "value": "[parameters('smtpPassword')]"
           },
           "_artifactsLocation": {
             "value": "[parameters('_artifactsLocation')]"

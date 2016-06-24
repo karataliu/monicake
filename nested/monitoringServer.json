@@ -81,7 +81,7 @@
       },
       "defaultValue": ""
     },
-    "smtpPassowrd": {
+    "smtpPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Smtp password."
