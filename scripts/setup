@@ -284,8 +284,8 @@ EOM
 echo sendEmail -f notify\@noreply.org -t \$1 -u \$2 -m \$3 -s $smtpServer -xu $smtpUser -xp $smtpPassword > /tmp/1
 EOM
             installPackageSuite('sendemail')
-            || installFile($mailBin, '/usr/local/zabbixMail');
-        }) if ($smtpServer);
+            || installFile('/usr/local/bin/zabbixMail', $mailBin);
+        }) if ($smtpServer && $smtpUser && $smtpPassword);
 
         return $s1;
     }
@@ -371,7 +371,7 @@ my %suites = (
     "zabbix-server"     => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql', 'mysql-client'],
     "mysql-server"      => ['mysql-server'],
     "perl-jsonrpc"      => ['libjson-rpc-perl'],
-    "sendmail"          => ['sendEmail'],
+    "sendemail"         => ['sendEmail'],
 );
 
 sub installPackageSuite
