@@ -283,10 +283,12 @@ EOM
 #!/bin/sh
 echo sendEmail -f notify\@noreply.org -t \$1 -u \$2 -m \$3 -s $smtpServer -xu $smtpUser -xp $smtpPassword > /tmp/1
 EOM
-            my $mailBinPath = '/usr/local/bin/zabbixMail';
+            my $alertScriptsPath = '/usr/local/share/zabbix/alertscripts';
+            my $mailBinPath = "$alertScriptsPath/zabbixMail";
 
             installPackageSuite('sendemail')
-            || installFile($mailBinPath, $mailBin);
+            || runCmd("mkdir -p $alertScriptsPath")
+            || installFile($mailBinPath, $mailBin)
             || runCmd("chmod +x $mailBinPath");
         }) if ($smtpServer && $smtpUser && $smtpPassword);
 
