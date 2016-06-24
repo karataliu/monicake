@@ -88,6 +88,13 @@
       },
       "defaultValue": ""
     },
+    "notificationReceiver": {
+      "type": "string",
+      "metadata": {
+        "description": "Notification receiver's Email."
+      },
+      "defaultValue": ""
+    },
     "_artifactsLocation": {
       "type": "string",
       "metadata": {
@@ -147,6 +154,9 @@
           },
           "smtpPassword": {
             "value": "[parameters('smtpPassword')]"
+          },
+          "notificationReceiver": {
+            "value": "[parameters('notificationReceiver')]"
           },
           "_artifactsLocation": {
             "value": "[parameters('_artifactsLocation')]"

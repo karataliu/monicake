@@ -88,6 +88,13 @@
       },
       "defaultValue": ""
     },
+    "notificationReceiver": {
+      "type": "string",
+      "metadata": {
+        "description": "Notification receiver's Email."
+      },
+      "defaultValue": ""
+    },
     "_artifactsLocation": {
       "type": "string",
       "metadata": {
@@ -211,7 +218,7 @@
               ]
             },
             "protectedSettings": {
-              "commandToExecute": "[concat('./setup -v server -cserver.mysqlHost=\"', parameters('mysqlHost'),'\" -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=\"', parameters('mysqlPassword'), '\" -cserver.smtpServer=\"', parameters('smtpServer'), '\" -cserver.smtpUser=\"', parameters('smtpUser'), '\" -cserver.smtpPassword=\"', parameters('smtpPassword'), '\"')]"
+              "commandToExecute": "[concat('./setup -v server -cserver.mysqlHost=\"', parameters('mysqlHost'),'\" -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=\"', parameters('mysqlPassword'), '\" -cserver.smtpServer=\"', parameters('smtpServer'), '\" -cserver.smtpUser=\"', parameters('smtpUser'), '\" -cserver.smtpPassword=\"', parameters('smtpPassword'), '\" -cserver.smtpTo=\"', parameters('notificationReceiver'), '\"')]"
             }
           }
         }
