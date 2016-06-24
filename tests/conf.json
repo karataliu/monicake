@@ -1,6 +1,6 @@
 {
     "location": "westus",
-    "resourcePrefix": "doliumt",
+    "resourcePrefix": "dolium",
     "tagName": "doliuMoniTest",
     "vmCount": 2,
     "adminPassword": ""
