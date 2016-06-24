@@ -16,6 +16,9 @@ my %config      = (
     "server.mysqlDbName"    => undef,
     "server.mysqlUser"      => undef,
     "server.mysqlPassword"  => undef,
+    "server.smtpServer"     => undef,
+    "server.smtpUser"       => undef,
+    "server.smtpPassword"   => undef,
 );
 
 {   # Parse options.
@@ -107,6 +110,10 @@ EOM
         my $zabbixDb        = $config{'server.mysqlDbName'};
         my $zabbixUser      = $config{'server.mysqlUser'};
         my $zabbixPassword  = $config{'server.mysqlPassword'};
+
+        my $smtpServer      = $config{'server.smtpServer'   };
+        my $smtpUser        = $config{'server.smtpUser'     };
+        my $smtpPassword    = $config{'server.smtpPassword' };
 
         my $s1 = [];
         regSteps($s1, "Install Zabbix Server package.", sub{
@@ -270,6 +277,15 @@ INSERT INTO \`optemplate\` VALUES (2,7,10105);
 EOM
             runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"$autoRegSetup\"");
         });
+        $s1=[];
+        regSteps($s1, "Config mail media.", sub {
+            my $mailBin = << "EOM";
+#!/bin/sh
+echo sendEmail -f notify\@noreply.org -t \$1 -u \$2 -m \$3 -s $smtpServer -xu $smtpUser -xp $smtpPassword > /tmp/1
+EOM
+            installPackageSuite('sendemail')
+            || installFile($mailBin, '/usr/local/zabbixMail');
+        }) if ($smtpServer);
 
         return $s1;
     }
@@ -355,6 +371,7 @@ my %suites = (
     "zabbix-server"     => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql', 'mysql-client'],
     "mysql-server"      => ['mysql-server'],
     "perl-jsonrpc"      => ['libjson-rpc-perl'],
+    "sendmail"          => ['sendEmail'],
 );
 
 sub installPackageSuite
