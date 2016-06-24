@@ -1,3 +1,6 @@
+v 0.1.10
+Support mail media.
+
 v 0.1.9
 Update nested template location.
 Add _artifactsLocation parameter.
