@@ -103,7 +103,6 @@
       "defaultValue": "https://raw.githubusercontent.com/karataliu/monicake/master"
     }
   },
-  "variables": {},
   "resources": [
     {
       "apiVersion": "2015-01-01",
