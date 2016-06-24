@@ -289,8 +289,8 @@ EOM
             my $mailBinPath = "$alertScriptsPath/zabbixMail";
 
             my $smtpMailMediaSetup = <<"EOM";
-INSERT INTO \`media_type\` VALUES (4,1,'smtpMail','','','','zabbixMail','','','',0);
-INSERT INTO \`media\` VALUES (1,1,4,'$smtpTo');
+INSERT INTO \\`media_type\\` VALUES (4,1,'smtpMail','','','','zabbixMail','','','',0);
+INSERT INTO \\`media\\` VALUES (1,1,4,'$smtpTo',0,63,'1-7,00:00-24:00');
 EOM
 
             installPackageSuite('sendemail')
