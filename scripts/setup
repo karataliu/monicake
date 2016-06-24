@@ -277,7 +277,7 @@ INSERT INTO \`optemplate\` VALUES (2,7,10105);
 EOM
             runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"$autoRegSetup\"");
         });
-        $s1=[];
+
         regSteps($s1, "Config mail media.", sub {
             my $mailBin = << "EOM";
 #!/bin/sh
