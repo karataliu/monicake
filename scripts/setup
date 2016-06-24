@@ -283,7 +283,7 @@ EOM
         regSteps($s1, "Config mail media.", sub {
             my $mailBin = << "EOM";
 #!/bin/sh
-sendEmail -f notify\@noreply.org -t "\$1" -u "\$2" -m "\$3" -s $smtpServer -xu $smtpUser -xp $smtpPassword
+sendEmail -f notification\@noreply.org -t "\$1" -u "\$2" -m "\$3" -s $smtpServer -xu $smtpUser -xp $smtpPassword
 EOM
             my $alertScriptsPath = '/etc/zabbix/alertscripts';
             my $mailBinPath = "$alertScriptsPath/zabbixMail";
