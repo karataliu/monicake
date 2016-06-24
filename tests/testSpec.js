@@ -122,7 +122,7 @@ function createExpectedVmList(prefix) {
 }
 
 function createMonitoring(rgName, prefix) {
-  var template = require('../azuredeploy.json');
+  var template = require('../nested/monitoringSolution.json');
   var templateParameters = {
     "monitorVmName": {
       "value": prefix + "mon"

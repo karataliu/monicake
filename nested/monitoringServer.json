@@ -67,6 +67,27 @@
         "description": "Monitoring service backend MySQL password."
       }
     },
+    "smtpServer": {
+      "type": "string",
+      "metadata": {
+        "description": "Smtp server, format is server:port."
+      },
+      "defaultValue": ""
+    },
+    "smtpUser": {
+      "type": "string",
+      "metadata": {
+        "description": "Smtp username."
+      },
+      "defaultValue": ""
+    },
+    "smtpPassowrd": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Smtp password."
+      },
+      "defaultValue": ""
+    },
     "_artifactsLocation": {
       "type": "string",
       "metadata": {
@@ -190,7 +211,7 @@
               ]
             },
             "protectedSettings": {
-              "commandToExecute": "[concat('./setup -v server -cserver.mysqlHost=\"', parameters('mysqlHost'),'\" -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=\"', parameters('mysqlPassword'),'\"')]"
+              "commandToExecute": "[concat('./setup -v server -cserver.mysqlHost=\"', parameters('mysqlHost'),'\" -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=\"', parameters('mysqlPassword'),'\" -cserver.smtpServer=\"', parameters('smtpServer'), '\" -cserver.smtpUser=\"', parameters('smtpUser'), '\" -cserver.smtpPassword=\"', parameters('smtpPassword), '\"')]"
             }
           }
         }
