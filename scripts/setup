@@ -19,6 +19,7 @@ my %config      = (
     "server.smtpServer"     => undef,
     "server.smtpUser"       => undef,
     "server.smtpPassword"   => undef,
+    "server.smtpTo"         => undef,
 );
 
 {   # Parse options.
@@ -114,6 +115,7 @@ EOM
         my $smtpServer      = $config{'server.smtpServer'   };
         my $smtpUser        = $config{'server.smtpUser'     };
         my $smtpPassword    = $config{'server.smtpPassword' };
+        my $smtpTo          = $config{'server.smtpTo'       };
 
         my $s1 = [];
         regSteps($s1, "Install Zabbix Server package.", sub{
@@ -286,11 +288,17 @@ EOM
             my $alertScriptsPath = '/etc/zabbix/alertscripts';
             my $mailBinPath = "$alertScriptsPath/zabbixMail";
 
+            my $smtpMailMediaSetup = <<"EOM";
+INSERT INTO \`media_type\` VALUES (4,1,'smtpMail','','','','zabbixMail','','','',0);
+INSERT INTO \`media\` VALUES (1,1,4,'$smtpTo');
+EOM
+
             installPackageSuite('sendemail')
             || runCmd("mkdir -p $alertScriptsPath")
             || installFile($mailBinPath, $mailBin)
-            || runCmd("chmod +x $mailBinPath");
-        }) if ($smtpServer && $smtpUser && $smtpPassword);
+            || runCmd("chmod +x $mailBinPath")
+            || runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"$smtpMailMediaSetup\"");
+        }) if ($smtpServer && $smtpUser && $smtpPassword && $smtpTo);
 
         return $s1;
     }
