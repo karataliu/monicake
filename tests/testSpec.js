@@ -5,7 +5,7 @@ var assert = chai.assert;
 var phantom = require('phantom');
 chai.use(require("chai-as-promised"));
 
-xdescribe('Step Test', function () {
+describe('Step Test', function () {
   var resourceGroup;
   var prefix;
 
@@ -17,16 +17,7 @@ xdescribe('Step Test', function () {
 
   it('CreateTestEnv', function () {
     this.timeout(1000 * 550);
-    var t1 = assert.isFulfilled(testUtils.createTestEnv(
-      /*
-      {
-        resourceGroup: 'dolium2016-06-24T09-38-24.107Z',
-        prefix: 'doliuma5',
-        storageAccount: 'doliuma5sto',
-        vnet: 'doliuma5vnet'
-      }
-      */
-    ));
+    var t1 = assert.isFulfilled(testUtils.createTestEnv());
     return Promise.all([
       t1.then(console.log),
       t1.then(function (dat) {
@@ -46,14 +37,7 @@ xdescribe('Step Test', function () {
     assert(prefix, "Prefix should not be empty");
     assert(resourceGroup, "resourceGroup should not be empty");
     this.timeout(1000 * 660);
-    var t1 = assert.isFulfilled(createMonitoringServer(resourceGroup, prefix, storageAccount, vnet
-      /*
-      ,{
-        serverInternalIp: '192.168.0.6',
-        serverPublicEndpoint: 'http://doliuma5mon.westus.cloudapp.azure.com/zab/'
-      }
-      */
-    ));
+    var t1 = assert.isFulfilled(createMonitoringServer(resourceGroup, prefix, storageAccount, vnet));
     return Promise.all([
       t1.then(console.log),
       t1.then(function (dat) {
