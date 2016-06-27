@@ -97,7 +97,9 @@ exports.createTestEnv = function (mock) {
     var outputs = res.properties.outputs;
     return {
       "resourceGroup": outputs.resourceGroup.value,
-      "prefix": outputs.prefix.value
+      "prefix": outputs.prefix.value,
+      "storageAccount": outputs.storageAccountName.value,
+      "vnet": outputs.virtualNetworkName.value
     };
   });
 };

@@ -5,23 +5,37 @@ var assert = chai.assert;
 var phantom = require('phantom');
 chai.use(require("chai-as-promised"));
 
-xdescribe('Step Test', function () {
+describe('Step Test', function () {
   var resourceGroup;
   var prefix;
 
   var serverInternalIp;
   var serverPublicEndpoint;
 
+  var storageAccount;
+  var vnet;
+
   it('CreateTestEnv', function () {
     this.timeout(1000 * 550);
-    var t1 = assert.isFulfilled(testUtils.createTestEnv());
+    var t1 = assert.isFulfilled(testUtils.createTestEnv(
+      {
+        resourceGroup: 'dolium2016-06-24T09-38-24.107Z',
+        prefix: 'doliuma5',
+        storageAccount: 'doliuma5sto',
+        vnet: 'doliuma5vnet'
+      }
+    ));
     return Promise.all([
       t1.then(console.log),
       t1.then(function (dat) {
         resourceGroup = dat.resourceGroup;
         prefix = dat.prefix;
+        storageAccount = dat.storageAccount;
+        vnet = dat.vnet;
         assert(prefix.startsWith(conf.resourcePrefix), "prefix not starts with expected");
         assert(resourceGroup.startsWith(conf.resourcePrefix), "rg not starts with expected");
+        assert(storageAccount.length > 0, "valid storage account");
+        assert(vnet.length > 0, "valid vnet");
       })
     ]);
   });
@@ -30,7 +44,12 @@ xdescribe('Step Test', function () {
     assert(prefix, "Prefix should not be empty");
     assert(resourceGroup, "resourceGroup should not be empty");
     this.timeout(1000 * 660);
-    var t1 = assert.isFulfilled(createMonitoringServer(resourceGroup, prefix));
+    var t1 = assert.isFulfilled(createMonitoringServer(resourceGroup, prefix, storageAccount, vnet,
+      {
+        serverInternalIp: '192.168.0.6',
+        serverPublicEndpoint: 'http://doliuma5mon.westus.cloudapp.azure.com/zab/'
+      }
+    ));
     return Promise.all([
       t1.then(console.log),
       t1.then(function (dat) {
@@ -43,7 +62,7 @@ xdescribe('Step Test', function () {
   it('CreateMonitoringAgents', function () {
     assert(serverInternalIp, "serverInternalIp should not be empty");
     this.timeout(1000 * 550);
-    var t1 = assert.isFulfilled(createMonitoringAgentsByVnet(resourceGroup, prefix, serverInternalIp));
+    var t1 = assert.isFulfilled(createMonitoringAgentsByVnet(resourceGroup, serverInternalIp, vnet));
     return t1;
   });
 
@@ -62,7 +81,7 @@ xdescribe('Step Test', function () {
   });
 });
 
-describe('Single Deployment Test', function () {
+xdescribe('Single Deployment Test', function () {
   var serverPublicEndpoint;
 
   it('CreateTestEnv', function () {
@@ -154,29 +173,23 @@ function createMonitoring(rgName, prefix) {
 }
 
 
-function createMonitoringServer(rgName, prefix, mock) {
-  if (mock)
-    return Promise.resolve(
-      {
-        serverInternalIp: '192.168.0.6',
-        serverPublicEndpoint: 'http://doliumtinqkd7damvphumon.westus.cloudapp.azure.com/zab/'
-      });
-
+function createMonitoringServer(rgName, prefix, storageAccount, vnet, mock) {
+    if (mock) return Promise.resolve(mock);
   var template = require('../nested/monitoringServer.json');
   var templateParameters = {
     "monitorVmName": {
       "value": prefix + "mon"
     },
     "storageAccount": {
-      "value": prefix + "sto"
+      "value": storageAccount
     },
     "virtualNetworkName": {
-      "value": prefix + "vnet"
+      "value": vnet
     },
     "subnetName": {
       "value": "default"
     },
-    "password": {
+    "adminPassword": {
       "value": "testPass&"
     },
     "mysqlPassword": {
@@ -194,7 +207,7 @@ function createMonitoringServer(rgName, prefix, mock) {
     });
 }
 
-function createMonitoringAgentsByVnet(rgName, prefix, serverIp, mock) {
+function createMonitoringAgentsByVnet(rgName, serverIp, vnet, mock) {
   if (mock) {
     return Promise.resolve();
   }
@@ -202,7 +215,7 @@ function createMonitoringAgentsByVnet(rgName, prefix, serverIp, mock) {
   var template = require('../nested/monitoringAgentByVnet.json');
   var templateParameters = {
     "virtualNetworkName": {
-      "value": prefix + "vnet"
+      "value": vnet
     },
     "subnetName": {
       "value": "default"

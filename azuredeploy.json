@@ -137,10 +137,10 @@
           "subnetName": {
             "value": "[variables('subnetName')]"
           },
-          "adminUsername": {
+          "monitorVmUsername": {
             "value": "[parameters('monitorVmUsername')]"
           },
-          "adminPassword": {
+          "monitorVmPassword": {
             "value": "[parameters('monitorVmPassword')]"
           },
           "mysqlHost": {
