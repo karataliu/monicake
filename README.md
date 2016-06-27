@@ -4,10 +4,18 @@ Supported Distros:
 Server: Ubuntu 14.04 LTS
 Agent: Ubuntu 14.04 LTS, Ubuntu 16.04 LTS, CentOS 7.1
 
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fazuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
+
 - nested/monitoringSolution.json
 This will install the monitor VM to given vnet/subnet, and also install monitoring agent on all vms connected to that vnet/subnet.
 
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fnested%2FmonitoringSolution.json)
+
 
 Deployment parameters:
 
