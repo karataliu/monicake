@@ -67,6 +67,34 @@
         "description": "Monitoring service backend MySQL password."
       }
     },
+    "smtpServer": {
+      "type": "string",
+      "metadata": {
+        "description": "The smtp server for mail notification, format is server:port."
+      },
+      "defaultValue": ""
+    },
+    "smtpUser": {
+      "type": "string",
+      "metadata": {
+        "description": "The smtp user for mail notification."
+      },
+      "defaultValue": ""
+    },
+    "smtpPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The smtp password for mail notification."
+      },
+      "defaultValue": ""
+    },
+    "notificationReceiver": {
+      "type": "string",
+      "metadata": {
+        "description": "The receiver's email address for mail notification."
+      },
+      "defaultValue": ""
+    },
     "_artifactsLocation": {
       "type": "string",
       "metadata": {
@@ -116,6 +144,18 @@
           },
           "mysqlPassword": {
             "value": "[parameters('mysqlPassword')]"
+          },
+          "smtpServer": {
+            "value": "[parameters('smtpServer')]"
+          },
+          "smtpUser": {
+            "value": "[parameters('smtpUser')]"
+          },
+          "smtpPassword": {
+            "value": "[parameters('smtpPassword')]"
+          },
+          "notificationReceiver": {
+            "value": "[parameters('notificationReceiver')]"
           },
           "_artifactsLocation": {
             "value": "[parameters('_artifactsLocation')]"
