@@ -17,12 +17,16 @@ Deployment parameters:
 | storageAccount        | An existing storage account in same resource group, used for storing the new VM.      |
 | virtualNetworkName    | The name of vnet where current VMs connects to.                                       |
 | subnetName            | The name of subnet where current VMs connects to.                                     |
-| username              | The username for the new created monitoring server VM.                                |
-| password              | The password for the new created monitoring server VM.                                |
+| monitorVmUsername     | The username for the new created monitoring server VM.                                |
+| monitorVmPassword     | The password for the new created monitoring server VM.                                |
 | mysqlHost             | The host for the backend database server, leave 'localhost' for creating a new one.   |
 | mysqlDbName           | The database name for monitoring backend database.                                    |
 | mysqlUser             | The database username for monitoring backend database.                                |
 | mysqlPassword         | The database password for monitoring backend database.                                |
+| smtpServer            | The smtp server for mail notification, format is server:port.                         |
+| smtpUser              | The smtp user for mail notification.                                                  |
+| smtpPassword          | The smtp password for mail notification.                                              |
+| notificationReceiver  | The receiver's email address for mail notification.                                   |
 
 Deployment output
 

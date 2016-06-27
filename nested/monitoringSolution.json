@@ -70,28 +70,28 @@
     "smtpServer": {
       "type": "string",
       "metadata": {
-        "description": "Smtp server, format is server:port."
+        "description": "The smtp server for mail notification, format is server:port."
       },
       "defaultValue": ""
     },
     "smtpUser": {
       "type": "string",
       "metadata": {
-        "description": "Smtp username."
+        "description": "The smtp user for mail notification."
       },
       "defaultValue": ""
     },
     "smtpPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Smtp password."
+        "description": "The smtp password for mail notification."
       },
       "defaultValue": ""
     },
     "notificationReceiver": {
       "type": "string",
       "metadata": {
-        "description": "Notification receiver's Email."
+        "description": "The receiver's email address for mail notification."
       },
       "defaultValue": ""
     },
