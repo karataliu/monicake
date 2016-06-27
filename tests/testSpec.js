@@ -92,12 +92,7 @@ describe('Single Deployment Test', function () {
 
   it('CreateTestEnv', function () {
     this.timeout(1000 * 560);
-    var t1 = assert.isFulfilled(testUtils.createTestEnv(
-      /*{
-        resourceGroup: 'doliumt2016-06-23T06-52-02.010Z',
-        prefix: 'doliumt8e'
-      }*/
-    ));
+    var t1 = assert.isFulfilled(testUtils.createTestEnv());
     return Promise.all([
       t1.then(console.log),
       t1.then(function (dat) {
@@ -153,10 +148,7 @@ function createExpectedVmList(prefix) {
 function createMonitoringSolution(rgName, prefix, storageAccount, vnet) {
   var template = require('../nested/monitoringSolution.json');
   var templateParameters = {
-    "monitorVmName": {
-      "value": prefix + "mon"
-    },
-    "storageAccount": {
+    "storageAccountName": {
       "value": storageAccount
     },
     "virtualNetworkName": {
@@ -164,6 +156,9 @@ function createMonitoringSolution(rgName, prefix, storageAccount, vnet) {
     },
     "subnetName": {
       "value": "default"
+    },
+    "monitorVmName": {
+      "value": prefix + "mon"
     },
     "monitorVmPassword": {
       "value": "testPass&"
@@ -184,13 +179,10 @@ function createMonitoringSolution(rgName, prefix, storageAccount, vnet) {
 
 
 function createMonitoringServer(rgName, prefix, storageAccount, vnet, mock) {
-    if (mock) return Promise.resolve(mock);
+  if (mock) return Promise.resolve(mock);
   var template = require('../nested/monitoringServer.json');
   var templateParameters = {
-    "monitorVmName": {
-      "value": prefix + "mon"
-    },
-    "storageAccount": {
+    "storageAccountName": {
       "value": storageAccount
     },
     "virtualNetworkName": {
@@ -198,6 +190,9 @@ function createMonitoringServer(rgName, prefix, storageAccount, vnet, mock) {
     },
     "subnetName": {
       "value": "default"
+    },
+    "vmName": {
+      "value": prefix + "mon"
     },
     "adminPassword": {
       "value": "testPass&"

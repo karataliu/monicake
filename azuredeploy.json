@@ -125,10 +125,7 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "monitorVmName": {
-            "value": "[parameters('monitorVmName')]"
-          },
-          "storageAccount": {
+          "storageAccountName": {
             "value": "[reference('deployClusterNodes').outputs.storageAccountName.value]"
           },
           "virtualNetworkName": {
@@ -136,6 +133,9 @@
           },
           "subnetName": {
             "value": "[variables('subnetName')]"
+          },
+          "monitorVmName": {
+            "value": "[parameters('monitorVmName')]"
           },
           "monitorVmUsername": {
             "value": "[parameters('monitorVmUsername')]"
