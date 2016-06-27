@@ -2,13 +2,7 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "monitorVmName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name for the monitor vm."
-      }
-    },
-    "storageAccount": {
+    "storageAccountName": {
       "type": "string",
       "metadata": {
         "description": "Existing Storage account for storing VM vhd."
@@ -26,6 +20,12 @@
         "description": "The subnet name the monitor VM connects to, also agents will also be installed on those VMs."
       },
       "defaultValue": "default"
+    },
+    "monitorVmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name for the monitor vm."
+      }
     },
     "monitorVmUsername": {
       "type": "string",
@@ -115,17 +115,17 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "monitorVmName": {
-            "value": "[parameters('monitorVmName')]"
-          },
-          "storageAccount": {
-            "value": "[parameters('storageAccount')]"
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
           },
           "virtualNetworkName": {
             "value": "[parameters('virtualNetworkName')]"
           },
           "subnetName": {
             "value": "[parameters('subnetName')]"
+          },
+          "vmName": {
+            "value": "[parameters('monitorVmName')]"
           },
           "adminUsername": {
             "value": "[parameters('monitorVmUsername')]"

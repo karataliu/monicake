@@ -2,13 +2,7 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "monitorVmName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name for the monitor vm."
-      }
-    },
-    "storageAccount": {
+    "storageAccountName": {
       "type": "string",
       "metadata": {
         "description": "Existing Storage account for storing VM vhd."
@@ -26,6 +20,12 @@
         "description": "The subnet name the monitor VM connects to, also agents will also be installed on those VMs."
       },
       "defaultValue": "default"
+    },
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name for the monitor vm."
+      }
     },
     "adminUsername": {
       "type": "string",
@@ -112,13 +112,13 @@
       "version": "latest"
     },
     "imageReference": "[variables('osType')]",
-    "OSDiskName": "[concat(parameters('monitorVmName'),'disk')]",
-    "nicName": "[concat(parameters('monitorVmName'),'nic')]",
-    "publicIPAddressName": "[concat(parameters('monitorVmName'),'ip')]",
+    "OSDiskName": "[concat(parameters('vmName'),'disk')]",
+    "nicName": "[concat(parameters('vmName'),'nic')]",
+    "publicIPAddressName": "[concat(parameters('vmName'),'ip')]",
     "publicIPAddressType": "Dynamic",
-    "storageAccountName": "[parameters('storageAccount')]",
+    "storageAccountName": "[parameters('storageAccountName')]",
     "vmStorageAccountContainerName": "vhds",
-    "vmName": "[parameters('monitorVmName')]",
+    "vmName": "[parameters('vmName')]",
     "vmSize": "Standard_DS2",
     "subnetName": "[parameters('subnetName')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
@@ -133,7 +133,7 @@
       "properties": {
         "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
         "dnsSettings": {
-          "domainNameLabel": "[parameters('monitorVmName')]"
+          "domainNameLabel": "[parameters('vmName')]"
         }
       }
     },

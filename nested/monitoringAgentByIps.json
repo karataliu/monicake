@@ -14,13 +14,6 @@
         "description": "server ip."
       }
     },
-    "subdepPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "server ip."
-      },
-      "defaultValue": "subConfigMonitoringAgent-"
-    },
     "_artifactsLocation": {
       "type": "string",
       "metadata": {
@@ -31,11 +24,12 @@
   },
   "variables": {
     "vmidPrefix": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Compute/virtualMachines/')]",
-    "nics": "[parameters('ipConfigurations')]"
+    "nics": "[parameters('ipConfigurations')]",
+    "subdepPrefix": "configMonitoringAgent-"
   },
   "resources": [
     {
-      "name": "[concat(parameters('subdepPrefix'), copyIndex())]",
+      "name": "[concat(variables('subdepPrefix'), copyIndex())]",
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
       "copy": {

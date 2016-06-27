@@ -13,10 +13,10 @@ Deployment parameters:
 
 | Parameters            | Description                                                                           |
 | -------------         | -------------                                                                         |
-| monitorVmName         | The name for the new monitoring server VM to be created.                              |
 | storageAccount        | An existing storage account in same resource group, used for storing the new VM.      |
 | virtualNetworkName    | The name of vnet where current VMs connects to.                                       |
 | subnetName            | The name of subnet where current VMs connects to.                                     |
+| monitorVmName         | The name for the new monitoring server VM to be created.                              |
 | monitorVmUsername     | The username for the new created monitoring server VM.                                |
 | monitorVmPassword     | The password for the new created monitoring server VM.                                |
 | mysqlHost             | The host for the backend database server, leave 'localhost' for creating a new one.   |
@@ -40,10 +40,10 @@ Deployment parameters:
 
 | Parameters            | Description                                                                           |
 | -------------         | -------------                                                                         |
-| monitorVmName         | The name for the new monitoring server VM to be created.                              |
 | storageAccount        | An existing storage account in same resource group, used for storing the new VM.      |
 | virtualNetworkName    | The name of vnet where current VMs connects to.                                       |
 | subnetName            | The name of subnet where current VMs connects to.                                     |
+| monitorVmName         | The name for the new monitoring server VM to be created.                              |
 | monitorVmUsername     | The username for the new created monitoring server VM.                                |
 | monitorVmPassword     | The password for the new created monitoring server VM.                                |
 | mysqlHost             | The host for the backend database server, leave 'localhost' for creating a new one.   |

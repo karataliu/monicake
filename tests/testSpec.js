@@ -5,7 +5,7 @@ var assert = chai.assert;
 var phantom = require('phantom');
 chai.use(require("chai-as-promised"));
 
-describe('Step Test', function () {
+xdescribe('Step Test', function () {
   var resourceGroup;
   var prefix;
 
@@ -85,7 +85,7 @@ describe('Step Test', function () {
   });
 });
 
-xdescribe('Single Deployment Test', function () {
+describe('Single Deployment Test', function () {
   var serverPublicEndpoint;
   var storageAccount;
   var vnet;
