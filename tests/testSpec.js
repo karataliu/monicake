@@ -18,12 +18,14 @@ describe('Step Test', function () {
   it('CreateTestEnv', function () {
     this.timeout(1000 * 550);
     var t1 = assert.isFulfilled(testUtils.createTestEnv(
+      /*
       {
         resourceGroup: 'dolium2016-06-24T09-38-24.107Z',
         prefix: 'doliuma5',
         storageAccount: 'doliuma5sto',
         vnet: 'doliuma5vnet'
       }
+      */
     ));
     return Promise.all([
       t1.then(console.log),
@@ -44,11 +46,13 @@ describe('Step Test', function () {
     assert(prefix, "Prefix should not be empty");
     assert(resourceGroup, "resourceGroup should not be empty");
     this.timeout(1000 * 660);
-    var t1 = assert.isFulfilled(createMonitoringServer(resourceGroup, prefix, storageAccount, vnet,
-      {
+    var t1 = assert.isFulfilled(createMonitoringServer(resourceGroup, prefix, storageAccount, vnet
+      /*
+      ,{
         serverInternalIp: '192.168.0.6',
         serverPublicEndpoint: 'http://doliuma5mon.westus.cloudapp.azure.com/zab/'
       }
+      */
     ));
     return Promise.all([
       t1.then(console.log),
@@ -83,6 +87,8 @@ describe('Step Test', function () {
 
 xdescribe('Single Deployment Test', function () {
   var serverPublicEndpoint;
+  var storageAccount;
+  var vnet;
 
   it('CreateTestEnv', function () {
     this.timeout(1000 * 560);
@@ -97,8 +103,12 @@ xdescribe('Single Deployment Test', function () {
       t1.then(function (dat) {
         resourceGroup = dat.resourceGroup;
         prefix = dat.prefix;
+        storageAccount = dat.storageAccount;
+        vnet = dat.vnet;
         assert(prefix.startsWith(conf.resourcePrefix), "prefix not starts with expected");
         assert(resourceGroup.startsWith(conf.resourcePrefix), "rg not starts with expected");
+        assert(storageAccount.length > 0, "valid storage account");
+        assert(vnet.length > 0, "valid vnet");
       })
     ]);
   });
@@ -107,7 +117,7 @@ xdescribe('Single Deployment Test', function () {
     assert(prefix, "Prefix should not be empty");
     assert(resourceGroup, "resourceGroup should not be empty");
     this.timeout(1000 * 1050);
-    var t1 = assert.isFulfilled(createMonitoring(resourceGroup, prefix));
+    var t1 = assert.isFulfilled(createMonitoringSolution(resourceGroup, prefix, storageAccount, vnet));
     return Promise.all([
       t1.then(console.log),
       t1.then(function (dat) {
@@ -140,17 +150,17 @@ function createExpectedVmList(prefix) {
   return expected;
 }
 
-function createMonitoring(rgName, prefix) {
+function createMonitoringSolution(rgName, prefix, storageAccount, vnet) {
   var template = require('../nested/monitoringSolution.json');
   var templateParameters = {
     "monitorVmName": {
       "value": prefix + "mon"
     },
     "storageAccount": {
-      "value": prefix + "sto"
+      "value": storageAccount
     },
     "virtualNetworkName": {
-      "value": prefix + "vnet"
+      "value": vnet
     },
     "subnetName": {
       "value": "default"
