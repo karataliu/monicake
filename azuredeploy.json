@@ -125,10 +125,10 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "storageAccountName": {
+          "existingStorageAccountName": {
             "value": "[reference('deployClusterNodes').outputs.storageAccountName.value]"
           },
-          "virtualNetworkName": {
+          "existingVirtualNetworkName": {
             "value": "[reference('deployClusterNodes').outputs.virtualNetworkName.value]"
           },
           "subnetName": {

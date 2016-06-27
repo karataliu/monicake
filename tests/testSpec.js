@@ -132,13 +132,13 @@ function createExpectedVmList(prefix) {
 function createMonitoringSolution(rgName, prefix, storageAccount, vnet) {
   var template = require('../nested/monitoringSolution.json');
   var templateParameters = {
-    "storageAccountName": {
+    "existingStorageAccountName": {
       "value": storageAccount
     },
-    "virtualNetworkName": {
+    "existingVirtualNetworkName": {
       "value": vnet
     },
-    "subnetName": {
+    "existingSubnetName": {
       "value": "default"
     },
     "monitorVmName": {
@@ -166,13 +166,13 @@ function createMonitoringServer(rgName, prefix, storageAccount, vnet, mock) {
   if (mock) return Promise.resolve(mock);
   var template = require('../nested/monitoringServer.json');
   var templateParameters = {
-    "storageAccountName": {
+    "existingStorageAccountName": {
       "value": storageAccount
     },
-    "virtualNetworkName": {
+    "existingVirtualNetworkName": {
       "value": vnet
     },
-    "subnetName": {
+    "existingSubnetName": {
       "value": "default"
     },
     "vmName": {
@@ -203,10 +203,10 @@ function createMonitoringAgentsByVnet(rgName, serverIp, vnet, mock) {
 
   var template = require('../nested/monitoringAgentByVnet.json');
   var templateParameters = {
-    "virtualNetworkName": {
+    "existingVirtualNetworkName": {
       "value": vnet
     },
-    "subnetName": {
+    "existingSubnetName": {
       "value": "default"
     },
     "serverIp": {
