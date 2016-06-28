@@ -27,6 +27,13 @@
         "description": "Name for the monitor vm."
       }
     },
+    "vmSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Name for the monitor vm."
+      },
+      "defaultValue": "Standard_DS2"
+    },
     "adminUsername": {
       "type": "string",
       "metadata": {
@@ -119,7 +126,7 @@
     "storageAccountName": "[parameters('existingStorageAccountName')]",
     "vmStorageAccountContainerName": "vhds",
     "vmName": "[parameters('vmName')]",
-    "vmSize": "Standard_1",
+    "vmSize": "[parameters('vmSize')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('existingVirtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('existingSubnetName'))]"
   },
