@@ -79,12 +79,12 @@ This will install monitoring server only.
 
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fnested%2FmonitoringServer.json)
 
-- nested/onitoringAgentByVnet.json
+- nested/monitoringAgentByVnet.json
 This will install monitoring agents for given vnet/subnet.
 
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fnested%2FmonitoringAgentByVnet.json)
 
-- nested/onitoringAgentByVms.json
+- nested/monitoringAgentByVms.json
 This will install monitoring agents for given Vms.
 
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkarataliu%2Fmonicake%2Fmaster%2Fnested%2FmonitoringAgentByVms.json)
