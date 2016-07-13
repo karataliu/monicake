@@ -131,7 +131,7 @@
           "existingVirtualNetworkName": {
             "value": "[reference('deployClusterNodes').outputs.virtualNetworkName.value]"
           },
-          "subnetName": {
+          "existingSubnetName": {
             "value": "[variables('subnetName')]"
           },
           "monitorVmName": {
