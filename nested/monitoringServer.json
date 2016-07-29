@@ -128,7 +128,8 @@
     "vmName": "[parameters('vmName')]",
     "vmSize": "[parameters('vmSize')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('existingVirtualNetworkName'))]",
-    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('existingSubnetName'))]"
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('existingSubnetName'))]",
+    "singleQuote": "'"
   },
   "resources": [
     {
@@ -224,7 +225,7 @@
               ]
             },
             "protectedSettings": {
-              "commandToExecute": "[concat('./setup -v server -cserver.mysqlHost=\"', parameters('mysqlHost'),'\" -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=\"', parameters('mysqlPassword'), '\" -cserver.smtpServer=\"', parameters('smtpServer'), '\" -cserver.smtpUser=\"', parameters('smtpUser'), '\" -cserver.smtpPassword=\"', parameters('smtpPassword'), '\" -cserver.smtpTo=\"', parameters('notificationReceiver'), '\"')]"
+              "commandToExecute": "[concat('./setup -v server -cserver.mysqlHost=\"', parameters('mysqlHost'),'\" -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=', variables('singleQuote'), parameters('mysqlPassword'), variables('singleQuote'), ' -cserver.smtpServer=\"', parameters('smtpServer'), '\" -cserver.smtpUser=\"', parameters('smtpUser'), '\" -cserver.smtpPassword=\"', parameters('smtpPassword'), '\" -cserver.smtpTo=\"', parameters('notificationReceiver'), '\"')]"
             }
           }
         }

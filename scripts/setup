@@ -139,14 +139,14 @@ EOM
         regSteps($s1, "Create database.", sub {
             my $dbSetup = << "EOM";
 create database if not exists $zabbixDb character set utf8 collate utf8_bin;
-grant all privileges on $zabbixDb.* to $zabbixUser\@localhost identified by '$zabbixPassword';
+grant all privileges on $zabbixDb.* to $zabbixUser\@localhost identified by "$zabbixPassword";
 EOM
             installPackageSuite('mysql-server')
-            || runCmd("mysql -e \"$dbSetup\"");
+            || runCmd("mysql -e '$dbSetup'");
         }) if ($dbServerHost eq $dbLocalhost);
 
         regSteps($s1, "Test db connection.", sub {
-            runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"\"");
+            runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p'$zabbixPassword' \"$zabbixDb\" -e \"\"");
         });
 
         regSteps($s1, "Configure initial db.", sub {
@@ -183,7 +183,7 @@ EOM
             runCmd("zcat /usr/share/zabbix-server-mysql/schema.sql.gz "
                         ."/usr/share/zabbix-server-mysql/images.sql.gz "
                         ."/usr/share/zabbix-server-mysql/data.sql.gz ".
-                        "|mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\"")
+                        "|mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p'$zabbixPassword' \"$zabbixDb\"")
             || installFile('/etc/zabbix/zabbix.conf.php', $confServerPhp)
             || installFile('/etc/zabbix/zabbix_server.conf', $confServer)
             || installFile('/etc/default/zabbix-server', $confDefault);
@@ -277,7 +277,7 @@ INSERT INTO \`actions\` VALUES (7,'autoreg1',2,0,0,0,'Auto registration: {HOST.H
 INSERT INTO \`operations\` VALUES (7,7,6,0,1,1,0);
 INSERT INTO \`optemplate\` VALUES (2,7,10105);
 EOM
-            runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"$autoRegSetup\"");
+            runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p'$zabbixPassword' \"$zabbixDb\" -e \"$autoRegSetup\"");
         });
 
         regSteps($s1, "Config mail media.", sub {
@@ -298,7 +298,7 @@ EOM
             || runCmd("mkdir -p $alertScriptsPath")
             || installFile($mailBinPath, $mailBin)
             || runCmd("chmod +x $mailBinPath")
-            || runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p\"$zabbixPassword\" \"$zabbixDb\" -e \"$smtpMailMediaSetup\"");
+            || runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p'$zabbixPassword' \"$zabbixDb\" -e \"$smtpMailMediaSetup\"");
         }) if ($smtpServer && $smtpUser && $smtpPassword && $smtpTo);
 
         return $s1;
