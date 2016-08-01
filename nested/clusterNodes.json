@@ -6,8 +6,7 @@
       "type": "string",
       "metadata": {
         "description": "Prefix string for all resources."
-      },
-      "defaultValue": "cluster"
+      }
     },
     "adminUsername": {
       "type": "string",
