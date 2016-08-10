@@ -32,7 +32,7 @@
       "metadata": {
         "description": "Name for the monitor vm."
       },
-      "defaultValue": "Standard_DS2"
+      "defaultValue": "Standard_D2"
     },
     "adminUsername": {
       "type": "string",
