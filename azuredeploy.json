@@ -5,81 +5,81 @@
     "clusterResourcePrefix": {
       "type": "string",
       "metadata": {
-        "description": "Prefix for cluster resources."
+        "description": "集群资源名前缀"
       },
       "defaultValue": "cluster"
     },
     "clusterUsername": {
       "type": "string",
       "metadata": {
-        "description": "Username for cluster vm."
+        "description": "集群虚拟机的用户名"
       },
       "defaultValue": "clusteruser"
     },
     "clusterPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Password for cluster vms."
+        "description": "集群虚拟机密码"
       }
     },
     "clusterVmCount": {
       "type": "int",
       "metadata": {
-        "description": "Number of VMs in the cluster."
+        "description": "集群虚拟机数量"
       },
       "defaultValue": 2
     },
     "monitorVmName": {
       "type": "string",
       "metadata": {
-        "description": "Name for the monitor vm."
+        "description": "监控虚拟机名"
       },
       "defaultValue": "monitorvm"
     },
     "monitorVmUsername": {
       "type": "string",
       "metadata": {
-        "description": "Monitor VM user name."
+        "description": "监控虚拟机用户名"
       },
       "defaultValue": "monitoruser"
     },
     "monitorVmPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Monitor VM password."
+        "description": "监控虚拟机密码"
       }
     },
     "mysqlHost": {
       "type": "string",
       "metadata": {
-        "description": "Monitoring service backend MySQL host. Using 'localhost' here will set up a new MySQL instance on the monitor VM."
+        "description": "监控服务后端MySQL服务器地址，使用'localhost'会在监控虚拟机上搭建新的MySQL实例。"
       },
       "defaultValue": "localhost"
     },
     "mysqlDbName": {
       "type": "string",
       "metadata": {
-        "description": "Monitoring service backend MySQL database name."
+        "description": "监控服务后端MySQL数据库名"
       },
       "defaultValue": "zabbixdb"
     },
     "mysqlUser": {
       "type": "string",
       "metadata": {
-        "description": "Monitoring service backend MySQL user name."
+        "description": "监控服务后端MySQL数据库用户名"
       },
       "defaultValue": "zabbixuser"
     },
     "mysqlPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Monitoring service backend MySQL password."
+        "description": "监控服务后端MySQL数据库密码"
       }
     },
     "_artifactsLocation": {
       "type": "string",
       "metadata": {
-        "description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
+        "description": "该模板附属资源的基地址"
       },
       "defaultValue": "https://raw.githubusercontent.com/karataliu/monicake/master"
     }
