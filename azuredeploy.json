@@ -5,26 +5,26 @@
     "clusterResourcePrefix": {
       "type": "string",
       "metadata": {
-        "description": "Prefix for cluster resources. This would become part of the fully qualified domain name for each VM in the cluster, thus it should be globally unique."
+        "description": "集群资源名前缀。该值会成为集群中虚拟机的完全限定域名(FQDN)的前缀，因此需要取一个全局唯一值。"
       }
     },
     "clusterUsername": {
       "type": "string",
       "metadata": {
-        "description": "Username for cluster vm."
+        "description": "集群虚拟机的用户名"
       },
       "defaultValue": "clusteruser"
     },
     "clusterPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Password for cluster vms."
+        "description": "集群虚拟机密码"
       }
     },
     "clusterVmCount": {
       "type": "int",
       "metadata": {
-        "description": "Number of VMs in the cluster."
+        "description": "集群虚拟机数量"
       },
       "defaultValue": 2,
       "maxValue": 20
@@ -32,13 +32,13 @@
     "monitorVmName": {
       "type": "string",
       "metadata": {
-        "description": "Name for the monitor VM. This would become part of the fully qualified domain name for monitor VM, thus it should be globally unique."
+        "description": "监控虚拟机名。该值会成为监控虚拟机的完全限定域名(FQDN)的一部分，因此需要取一个全局唯一值。"
       }
     },
     "monitorVmDistro": {
       "type": "string",
       "metadata": {
-        "description": "Distro type for the monitor VM."
+        "description": "监控虚拟机的发行版种类。"
       },
       "allowedValues": [
         "Ubuntu",
@@ -49,20 +49,20 @@
     "monitorVmUsername": {
       "type": "string",
       "metadata": {
-        "description": "Monitor VM user name."
+        "description": "监控虚拟机用户名"
       },
       "defaultValue": "monitoruser"
     },
     "monitorVmPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Monitor VM password."
+        "description": "监控虚拟机密码"
       }
     },
     "mysqlServerType": {
       "type": "string",
       "metadata": {
-        "description": "MySql Server type. 'Localhost' for creating a new MySQL instance on the monitor VM, 'existing' for using an existing host."
+        "description": "MySQL服务器类型。'existing'会使用指定实例,'Localhost'会在监控虚拟机上创建新的实例, 'Paas'会创建新的paas实例。"
       },
       "allowedValues": [
         "Existing", "Localhost", "Paas"
@@ -72,34 +72,34 @@
     "mysqlHost": {
       "type": "string",
       "metadata": {
-        "description": "Monitoring service backend MySQL host, only needed when 'mysqlServerType' is set to 'existing'."
+        "description": "监控服务后端MySQL服务器地址，仅当'mysqlServerType'为'existing'需要。"
       },
       "defaultValue": ""
     },
     "mysqlDbName": {
       "type": "string",
       "metadata": {
-        "description": "Monitoring service backend MySQL database name."
+        "description": "监控服务后端MySQL数据库名"
       },
       "defaultValue": "zabbixdb"
     },
     "mysqlUser": {
       "type": "string",
       "metadata": {
-        "description": "Monitoring service backend MySQL user name."
+        "description": "监控服务后端MySQL数据库用户名"
       },
       "defaultValue": "zabbixuser"
     },
     "mysqlPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Monitoring service backend MySQL password."
+        "description": "监控服务后端MySQL数据库密码"
       }
     },
     "_artifactsLocation": {
       "type": "string",
       "metadata": {
-        "description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
+        "description": "该模板附属资源的基地址"
       },
       "defaultValue": "http://msmirrors.blob.core.chinacloudapi.cn/zabbix/v0.4.0"
     }
