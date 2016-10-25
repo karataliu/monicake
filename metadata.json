@@ -1,7 +1,7 @@
 {
-  "itemDisplayName": "Create a cluster and a zabbix monitor server for cluster monitoring",
-  "description": "This template creates a cluster and sets up a zabbix monitor server for cluster monitoring.",
-  "summary": "Create a cluster and a zabbix monitor server for cluster monitoring",
+  "itemDisplayName": "VM Cluster with Zabbix monitoring",
+  "description": "This template creates a cluster and sets up a zabbix monitoring server for cluster monitoring.",
+  "summary": "Create a cluster and a zabbix monitor server for cluster monitoring.",
   "githubUsername": "karataliu",
-  "dateUpdated": "2016-06-27"
+  "dateUpdated": "2016-07-29"
 }
