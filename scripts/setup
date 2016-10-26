@@ -215,7 +215,7 @@ EOM
         });
 
         if (-x '/usr/sbin/semodule'){
-          regSteps($s1, "Config selinux.", sub{
+          regSteps($s1, "Configure selinux.", sub{
             installPackageSuite("selinux-util");
             my $log = 'type=AVC msg=audit(1477461524.352:480): avc:  denied  { name_connect } for  pid=1852 comm="/usr/sbin/httpd" dest=10051 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:zabbix_port_t:s0 tclass=tcp_socket';
             runCmd("audit2allow -M zabbix-web << EO\n$log\nEO\n")
@@ -223,7 +223,9 @@ EOM
           });
         }
 
-        regSteps($s1, "Restart service.", sub{
+        regSteps($s1, "Enable and restart service.", sub{
+            enableService("httpd");
+            enableService("zabbix-server");
             runCmd("service apache2 restart || service httpd restart")
             || runCmd("service zabbix-server restart");
         });
