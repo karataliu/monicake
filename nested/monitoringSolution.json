@@ -57,7 +57,7 @@
         "description": "MySql Server type. 'Localhost' for creating a new MySQL instance on the monitor VM, 'existing' for using an existing host."
       },
       "allowedValues": [
-        "Localhost", "Existing"
+        "Existing", "Localhost", "Paas"
       ],
       "defaultValue": "Localhost"
     },
@@ -150,6 +150,18 @@
         "parameters": {
           "mysqlHost": {
             "value": "[parameters('mysqlHost')]"
+          },
+          "mysqlServerName": {
+            "value": "[concat(parameters('monitorVmName'),'db')]"
+          },
+          "mysqlDbName": {
+            "value": "[parameters('mysqlDbName')]"
+          },
+          "mysqlUser": {
+            "value": "[parameters('mysqlUser')]"
+          },
+          "mysqlPassword": {
+            "value": "[parameters('mysqlPassword')]"
           }
         }
       }
@@ -196,7 +208,7 @@
             "value": "[parameters('mysqlDbName')]"
           },
           "mysqlUser": {
-            "value": "[parameters('mysqlUser')]"
+            "value": "[reference('configMonitoringServerDatabase').outputs.mysqlUser.value]"
           },
           "mysqlPassword": {
             "value": "[parameters('mysqlPassword')]"

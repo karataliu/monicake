@@ -117,6 +117,10 @@ EOM
         my $smtpPassword    = $config{'server.smtpPassword' };
         my $smtpTo          = $config{'server.smtpTo'       };
 
+        if($dbServerHost=~/(.*):/){
+          $dbServerHost = $1;
+        }
+
         my $s1 = [];
         regSteps($s1, "Install Zabbix Server package.", sub{
             installPackageSuite("zabbix-server");

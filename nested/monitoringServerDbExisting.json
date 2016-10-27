@@ -7,6 +7,32 @@
       "metadata": {
         "description": "The existing MySQL host."
       }
+    },
+    "mysqlServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Not used, leave it here to keep a uniform interface."
+      }
+    },
+    "mysqlDbName": {
+      "type": "string",
+      "metadata": {
+        "description": "Not used, leave it here to keep a uniform interface."
+      },
+      "defaultValue": "zabbixdb"
+    },
+    "mysqlUser": {
+      "type": "string",
+      "metadata": {
+        "description": "Not used, leave it here to keep a uniform interface."
+      },
+      "defaultValue": "zabbixuser"
+    },
+    "mysqlPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Not used, leave it here to keep a uniform interface."
+      }
     }
   },
   "resources": [],
@@ -14,6 +40,10 @@
     "mysqlHost": {
       "type": "string",
       "value": "[parameters('mysqlHost')]"
+    },
+    "mysqlUser": {
+      "type": "string",
+      "value": "[parameters('mysqlUser')]"
     }
   }
 }
