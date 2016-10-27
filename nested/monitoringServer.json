@@ -226,7 +226,7 @@
               ]
             },
             "protectedSettings": {
-              "commandToExecute": "[concat('./setup -v server -cserver.mysqlHost=\"', parameters('mysqlHost'),'\" -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=', variables('singleQuote'), parameters('mysqlPassword'), variables('singleQuote'), ' -cserver.smtpServer=\"', parameters('smtpServer'), '\" -cserver.smtpUser=\"', parameters('smtpUser'), '\" -cserver.smtpPassword=\"', parameters('smtpPassword'), '\" -cserver.smtpTo=\"', parameters('notificationReceiver'), '\"')]"
+              "commandToExecute": "[concat('./setup -v server -cserver.mysqlHost=\"', parameters('mysqlHost'),'\" -cserver.mysqlDbName=\"', parameters('mysqlDbName'), '\" -cserver.mysqlUser=\"', parameters('mysqlUser'), '\" -cserver.mysqlPassword=', variables('singleQuote'), parameters('mysqlPassword'), variables('singleQuote'), ' -cserver.smtpServer=\"', parameters('smtpServer'), '\" -cserver.smtpUser=\"', parameters('smtpUser'), '\" -cserver.smtpPassword=', variables('singleQuote'), parameters('smtpPassword'), variables('singleQuote'), ' -cserver.smtpTo=\"', parameters('notificationReceiver'), '\"')]"
             }
           }
         }
