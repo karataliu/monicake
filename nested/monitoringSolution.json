@@ -51,12 +51,22 @@
         "description": "Monitor VM password."
       }
     },
+    "mysqlServerType": {
+      "type": "string",
+      "metadata": {
+        "description": "MySql Server type. 'Localhost' for creating a new MySQL instance on the monitor VM, 'existing' for using an existing host."
+      },
+      "allowedValues": [
+        "Localhost", "Existing"
+      ],
+      "defaultValue": "Localhost"
+    },
     "mysqlHost": {
       "type": "string",
       "metadata": {
-        "description": "Monitoring service backend MySQL host. Using 'localhost' here will set up a new MySQL instance on the monitor VM."
+        "description": "Monitoring service backend MySQL host, only needed when 'mysqlServerType' is set to 'existing'."
       },
-      "defaultValue": "localhost"
+      "defaultValue": ""
     },
     "mysqlDbName": {
       "type": "string",
@@ -129,8 +139,28 @@
     },
     {
       "apiVersion": "2015-01-01",
+      "name": "configMonitoringServerDatabase",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('_artifactsLocation'), '/nested/monitoringServerDb', parameters('mysqlServerType'), '.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "mysqlHost": {
+            "value": "[parameters('mysqlHost')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
       "name": "configMonitoringServerVM",
       "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "configMonitoringServerDatabase"
+      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -160,7 +190,7 @@
             "value": "[parameters('monitorVmPassword')]"
           },
           "mysqlHost": {
-            "value": "[parameters('mysqlHost')]"
+            "value": "[reference('configMonitoringServerDatabase').outputs.mysqlHost.value]"
           },
           "mysqlDbName": {
             "value": "[parameters('mysqlDbName')]"
