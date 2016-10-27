@@ -83,7 +83,7 @@ EOM
         regSteps($s1, "Install Zabbix Agent package.", sub {
             installPackageSuite("zabbix-agent");
         });
-        regSteps($s1, "Config zabbix agent.", sub {
+        regSteps($s1, "Configure zabbix agent.", sub {
             installFile('/etc/zabbix/zabbix_agentd.conf', $confAgent)
             || runCmd("mkdir -p $confAgentDir")
             || installFile("$confAgentDir/azure_vm.conf", $confAzureVM);
@@ -318,11 +318,19 @@ EOM
             runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p'$zabbixPassword' \"$zabbixDb\" -e \"$autoRegSetup\"");
         });
 
-        regSteps($s1, "Config mail media.", sub {
-            my $mailBin = << "EOM";
+        regSteps($s1, "Configure mail media.", sub {
+          my $mailBin;
+          if ($smtpServer && $smtpUser && $smtpPassword){
+            $mailBin = << "EOM";
 #!/bin/sh
 sendEmail -f notification\@noreply.org -t "\$1" -u "\$2" -m "\$3" -s $smtpServer -xu $smtpUser -xp $smtpPassword
 EOM
+          } else {
+            $mailBin = << "EOM";
+#!/bin/sh
+sendEmail -f notification\@noreply.org -t "\$1" -u "\$2" -m "\$3"
+EOM
+          }
             my $alertScriptsPath = '/etc/zabbix/alertscripts';
             my $mailBinPath = "$alertScriptsPath/zabbixMail";
 
@@ -333,11 +341,15 @@ UPDATE \\`actions\\` SET status=0 WHERE actionid=3;
 EOM
 
             installPackageSuite('sendemail')
-            || runCmd("mkdir -p $alertScriptsPath")
-            || installFile($mailBinPath, $mailBin)
+            && runCmd("curl http://caspian.dotconf.net/menu/Software/SendEmail/sendEmail-v1.56.tar.gz| "
+              ."tar zxO sendEmail-v1.56/sendEmail > /usr/local/bin/sendEmail && chmod +x /usr/local/bin/sendEmail");
+            runCmd("mkdir -p $alertScriptsPath");
+            runCmd("ln -s $alertScriptsPath /usr/share/zabbix/");
+
+            installFile($mailBinPath, $mailBin)
             || runCmd("chmod +x $mailBinPath")
             || runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p'$zabbixPassword' \"$zabbixDb\" -e \"$smtpMailMediaSetup\"");
-        }) if ($smtpServer && $smtpUser && $smtpPassword && $smtpTo);
+        }) if ($smtpTo);
 
         return $s1;
     }
@@ -425,7 +437,7 @@ my %suites = (
     "mysql-server\@centos7"     => ['mariadb-server'],
     "perl-jsonrpc"      => ['libjson-rpc-perl'],
     "perl-jsonrpc\@centos7"      => ['perl-JSON-RPC'],
-    "sendemail"         => ['sendEmail'],
+    "sendemail"         => ['sendemail'],
     "selinux-util"      => ['policycoreutils-python']
 );
 
