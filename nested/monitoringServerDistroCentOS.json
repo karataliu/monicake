@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "resources": [],
   "outputs": {
-    "mysqlHost": {
+    "imageReference": {
       "type": "object",
       "value": {
         "publisher": "OpenLogic",
