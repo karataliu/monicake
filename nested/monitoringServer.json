@@ -34,6 +34,18 @@
       },
       "defaultValue": "Standard_DS2"
     },
+    "vmImageReference": {
+      "type": "object",
+      "metadata": {
+        "description": "Image reference for the monitor VM. Ubuntu-14.04 and CentOS-7 are verified."
+      },
+      "defaultValue": {
+        "publisher": "Canonical",
+        "offer": "UbuntuServer",
+        "sku": "14.04.3-LTS",
+        "version": "latest"
+      }
+    },
     "adminUsername": {
       "type": "string",
       "metadata": {
@@ -112,13 +124,7 @@
   },
   "variables": {
     "location": "[resourceGroup().location]",
-    "osType": {
-      "publisher": "Canonical",
-      "offer": "UbuntuServer",
-      "sku": "14.04.3-LTS",
-      "version": "latest"
-    },
-    "imageReference": "[variables('osType')]",
+    "imageReference": "[parameters('vmImageReference')]",
     "OSDiskName": "[concat(parameters('vmName'),'disk')]",
     "nicName": "[concat(parameters('vmName'),'nic')]",
     "publicIPAddressName": "[concat(parameters('vmName'),'ip')]",
