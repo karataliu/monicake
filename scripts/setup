@@ -245,15 +245,15 @@ EOM
                 if($res) {
                     if ($res->is_error) {
                         say "Error : ", $res->error_message;
-                        exit(1);
+                        return 1;
                     }
                     else {
-                        return $res->result;
+                        return (0, $res->result);
                     }
                 }
                 else {
                     say "Error code: ", $client->status_line;
-                    exit(2);
+                    return 2;
                 }
             }
 
@@ -268,8 +268,10 @@ EOM
                 "id", 0,
                 "auth", undef
             };
-
-            my $token = callrpc($authRequest);
+            
+            my $ret;
+            my $token;
+            ($ret, $token) = callrpc($authRequest);
 
             open FL,'<','templateAzureVmLinux.xml';
             my $xml;
@@ -305,10 +307,10 @@ EOM
                 "id", 1
             };
 
-            callrpc($importRequest);
-
-            return 0;
+            ($ret, $token) = callrpc($importRequest);
+            return $ret;
         });
+
         regSteps($s1, "Configure autoreg.", sub{
             my $autoRegSetup = <<'EOM';
 INSERT INTO \`actions\` VALUES (7,'autoreg1',2,0,0,0,'Auto registration: {HOST.HOST}','Host name: {HOST.HOST}\r\nHost IP: {HOST.IP}\r\nAgent port: {HOST.PORT}',0,'','');
