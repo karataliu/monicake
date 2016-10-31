@@ -384,8 +384,8 @@ use constant {
 
 our $verbose        = LOGINFO;
 our $dryrun         = 1;
-our $defaultRetry   = 2;
-our $defaultSleep   = 5;
+our $defaultRetry   = 5;
+our $defaultSleep   = 30;
 
 sub installFile
 {
