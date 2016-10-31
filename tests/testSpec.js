@@ -250,9 +250,10 @@ function getDiscoveredVms(serverEndPoint, mock) {
       });
     })
     .then(function () {
-      return delay(3000);
+      return delay(10000);
     })
     .then(function () {
+      // page.render('result.png');
       return page.evaluate(function () {
         var vms = [];
         [].forEach.call(document.querySelectorAll('.link_menu'), function (span) { vms.push(span.innerText); });
