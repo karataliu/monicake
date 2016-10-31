@@ -24,13 +24,13 @@
     "monitorVmName": {
       "type": "string",
       "metadata": {
-        "description": "Name for the monitor vm."
+        "description": "Name for the monitor VM. This would become part of the fully qualified domain name for monitor VM, thus it should be globally unique."
       }
     },
     "monitorVmDistro": {
       "type": "string",
       "metadata": {
-        "description": "Distro type for vm."
+        "description": "Distro type for VM."
       },
       "allowedValues": [
         "Ubuntu",
