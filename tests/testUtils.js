@@ -39,7 +39,9 @@ function createTestResourceGroup(rgName) {
 
 function createDeployment(rgName, template, templateParameters) {
   return new Promise(function (resolve, reject) {
-    if (template.parameters._artifactsLocation) {
+    if (template.parameters._artifactsLocation &&
+      template.parameters._artifactsLocation.value &&
+      template.parameters._artifactsLocation.value.startsWith("https://raw.githubusercontent.com")) {
       getArtifactsLocation().then(location => {
         templateParameters._artifactsLocation = {
           "value": location
