@@ -10,59 +10,19 @@ import util;
 
 our $VERSION    = 0.1.8;
 
-my %config      = (
-    "agent.serverIp"        => undef,
-    "server.mysqlHost"      => undef,
-    "server.mysqlDbName"    => undef,
-    "server.mysqlUser"      => undef,
-    "server.mysqlPassword"  => undef,
-    "server.smtpServer"     => undef,
-    "server.smtpUser"       => undef,
-    "server.smtpPassword"   => undef,
-    "server.smtpTo"         => undef,
-);
-
-{   # Parse options.
-    Getopt::Long::Configure qw(gnu_getopt);
-    my $optVerbose;
-    my $optQuiet;
-    my $optDryrun;
-    my %optConfig;
-
-    GetOptions(
-        'verbose|v'     =>  \$optVerbose,
-        'quiet|q'       =>  \$optQuiet,
-        'dryrun|n'      =>  \$optDryrun,
-        'config|c=s'    =>  \%optConfig,
-    ) || exit(1);
-    $util::verbose  = $optVerbose ? 1 : ($optQuiet ? 3 : 2 );
-    $util::dryrun   = $optDryrun;
-
-    # parse config
-    while (my ($key,$value) = each %optConfig) {
-        if(exists $config{$key}){
-            $config{$key} = $value;
-        }else{
-            pod2usage(
-                -msg => "Invalid config key '$key' specified. Supported keys are:",
-                -sections => "CONFIGKEY",
-                -verbose => 99);
-        }
-    }
-}
-
-my $optType     = shift || "help";
-
-my %flow = (
+runFlows({
     agent   => sub {
-        unless ($config{'agent.serverIp'}){
+        my $regStep = shift;
+        my $config = shift;
+
+        unless ($config->{'serverIp'}){
             pod2usage(
                 -msg        => "agent.serverIp not set",
                 -sections   => "DESCRIPTION",
                 -verbose    => 99);
         }
-        
-        my $zabbixServerIp = $config{'agent.serverIp'};
+
+        my $zabbixServerIp = $config->{'serverIp'};
         require Sys::Hostname;
         my $host = &Sys::Hostname::hostname;
 
@@ -79,26 +39,25 @@ EOM
 UserParameter=azure.vm.agent.alive,ps aux |grep -c "[w]aagent -daemon"
 EOM
 
-        my $s1 = [];
-        regSteps($s1, "Install Zabbix Agent package.", sub {
+        $regStep->("Install Zabbix Agent package.", sub {
             installPackageSuite("zabbix-agent");
         });
-        regSteps($s1, "Configure zabbix agent.", sub {
+        $regStep->("Configure zabbix agent.", sub {
             installFile('/etc/zabbix/zabbix_agentd.conf', $confAgent)
             || runCmd("mkdir -p $confAgentDir")
             || installFile("$confAgentDir/azure_vm.conf", $confAzureVM);
         });
-        regSteps($s1, "Enable Zabbix Agent service.", sub {
+        $regStep->("Enable Zabbix Agent service.", sub {
             enableService('zabbix-agent');
         });
-        regSteps($s1, "Restart Zabbix Agent service.", sub {
+        $regStep->("Restart Zabbix Agent service.", sub {
             runCmd('service zabbix-agent restart');
         });
-
-        return $s1;
     },
     server  => sub {
-        unless ($config{'server.mysqlDbName'} && $config{'server.mysqlUser'} && $config{'server.mysqlPassword'}){
+        my $regStep = shift;
+        my $config = shift;
+        unless ($config->{'mysqlDbName'} && $config->{'mysqlUser'} && $config->{'mysqlPassword'}){
             pod2usage(
                 -msg        => "server configuration not well set",
                 -sections   => [qw(DESCRIPTION CONFIGKEY/SERVER)],
@@ -107,25 +66,24 @@ EOM
 
         my $dbLocalhost     = 'localhost';
 
-        my $dbServerHost    = $config{'server.mysqlHost'} || $dbLocalhost;
-        my $zabbixDb        = $config{'server.mysqlDbName'};
-        my $zabbixUser      = $config{'server.mysqlUser'};
-        my $zabbixPassword  = $config{'server.mysqlPassword'};
+        my $dbServerHost    = $config->{'mysqlHost'} || $dbLocalhost;
+        my $zabbixDb        = $config->{'mysqlDbName'};
+        my $zabbixUser      = $config->{'mysqlUser'};
+        my $zabbixPassword  = $config->{'mysqlPassword'};
 
-        my $smtpServer      = $config{'server.smtpServer'   };
-        my $smtpUser        = $config{'server.smtpUser'     };
-        my $smtpPassword    = $config{'server.smtpPassword' };
-        my $smtpTo          = $config{'server.smtpTo'       };
+        my $smtpServer      = $config->{'smtpServer'   };
+        my $smtpUser        = $config->{'smtpUser'     };
+        my $smtpPassword    = $config->{'smtpPassword' };
+        my $smtpTo          = $config->{'smtpTo'       };
 
         if($dbServerHost=~/(.*):/){
           $dbServerHost = $1;
         }
 
-        my $s1 = [];
-        regSteps($s1, "Install Zabbix Server package.", sub{
+        $regStep->("Install Zabbix Server package.", sub{
             installPackageSuite("zabbix-server");
         });
-        regSteps($s1, "Configure apache.", sub{
+        $regStep->("Configure apache.", sub{
             my $confServerApachePhp = << 'EOM';
 <Directory "/usr/share/zabbix">
   Require all granted
@@ -149,7 +107,7 @@ EOM
             }
         });
 
-        regSteps($s1, "Create database.", sub {
+        $regStep->("Create database.", sub {
             my $dbSetup = << "EOM";
 create database if not exists $zabbixDb character set utf8 collate utf8_bin;
 grant all privileges on $zabbixDb.* to $zabbixUser\@localhost identified by "$zabbixPassword";
@@ -160,11 +118,11 @@ EOM
             runCmd("mysql -e '$dbSetup'");
         }) if ($dbServerHost eq $dbLocalhost);
 
-        regSteps($s1, "Test db connection.", sub {
+        $regStep->("Test db connection.", sub {
             runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p'$zabbixPassword' \"$zabbixDb\" -e \"\"");
         });
 
-        regSteps($s1, "Configure initial db.", sub {
+        $regStep->("Configure initial db.", sub {
             my $confServerPhp = << "EOM";
 <?php
 global \$DB;
@@ -219,7 +177,7 @@ EOM
         });
 
         if (-x '/usr/sbin/semodule'){
-          regSteps($s1, "Configure selinux.", sub{
+          $regStep->("Configure selinux.", sub{
             installPackageSuite("selinux-util");
 
 
@@ -234,14 +192,14 @@ EOM
           });
         }
 
-        regSteps($s1, "Enable and restart service.", sub{
+        $regStep->("Enable and restart service.", sub{
             enableService("httpd");
             enableService("zabbix-server");
             runCmd("service apache2 restart || service httpd restart")
             || runCmd("service zabbix-server restart");
         });
 
-        regSteps($s1, "Configure azure specific tempalte.", sub {
+        $regStep->("Configure azure specific tempalte.", sub {
             installPackageSuite("perl-jsonrpc");    # for regTemplate
             require JSON::RPC::Legacy::Client;
             our $client      = new JSON::RPC::Legacy::Client;
@@ -322,7 +280,7 @@ EOM
             return $ret;
         });
 
-        regSteps($s1, "Configure autoreg.", sub{
+        $regStep->("Configure autoreg.", sub{
             my $autoRegSetup = <<'EOM';
 INSERT INTO \`actions\` VALUES (7,'autoreg1',2,0,0,0,'Auto registration: {HOST.HOST}','Host name: {HOST.HOST}\r\nHost IP: {HOST.IP}\r\nAgent port: {HOST.PORT}',0,'','');
 INSERT INTO \`operations\` VALUES (7,7,6,0,1,1,0);
@@ -331,7 +289,7 @@ EOM
             runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p'$zabbixPassword' \"$zabbixDb\" -e \"$autoRegSetup\"");
         });
 
-        regSteps($s1, "Configure mail media.", sub {
+        $regStep->("Configure mail media.", sub {
           my $mailBin;
           if ($smtpServer && $smtpUser && $smtpPassword){
             $mailBin = << "EOM";
@@ -363,14 +321,8 @@ EOM
             || runCmd("chmod +x $mailBinPath")
             || runCmd("mysql -h \"$dbServerHost\" -u\"$zabbixUser\" -p'$zabbixPassword' \"$zabbixDb\" -e \"$smtpMailMediaSetup\"");
         }) if ($smtpTo);
-
-        return $s1;
     }
-);
-
-my $getSteps = $flow{$optType};
-pod2usage(1) unless $getSteps;
-runSteps(&$getSteps);
+});
 
 BEGIN{
 package util;
