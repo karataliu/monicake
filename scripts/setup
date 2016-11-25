@@ -379,70 +379,19 @@ use 5.010;
 use strict;
 use warnings;
 use Exporter qw(import);
-
-our @EXPORT        = qw(installFile installPackageSuite runCmd runSteps regSteps enableService
-    LOGDEBUG LOGINFO LOGWARN LOGERR info);
-our %EXPORT_TAGS    = (logging => [qw(LOGDEBUG LOGINFO LOGWARN LOGERR info)]);
-
-my $rpmRepo = "http://mirror.azure.cn/zabbix/zabbix/2.2/rhel/7/x86_64/zabbix-release-2.2-1.el7.noarch.rpm http://mirror.azure.cn/epel/7/x86_64/e/epel-release-7-8.noarch.rpm";
-
+use Getopt::Long;
+use Pod::Usage;
 use constant {
-    LOGDEBUG  => 1,
-    LOGINFO   => 2,
-    LOGWARN   => 3,
-    LOGERR    => 4,
+  LOGERR    => 1,
+  LOGINFO   => 2, 
+  LOGDEBUG  => 3,
 };
 
-our $verbose        = LOGINFO;
-our $dryrun         = 1;
-our $defaultRetry   = 5;
-our $defaultSleep   = 30;
+# version 0.2.0;
 
-sub installFile
-{
-    my $path        = shift;
-    my $content     = shift;
-    my $FL;
-
-    return 0 if $dryrun;
-
-    open($FL, '>', $path);
-    print $FL $content;
-    close $FL;
-    return 0;
-}
-
-sub setLogLevel
-{
-    $verbose = shift;
-}
-
-sub info
-{
-    my $msg     = shift;
-    my $level   = shift || LOGINFO;
-
-    return if ($verbose > $level);
-    say "[MONICAKE] $msg";
-}
-
-sub runCmd
-{
-    my $cmd = shift;
-    if ($verbose >= LOGINFO) { $cmd .= " >/dev/null"; }
-
-    info "Run command:\n$cmd", LOGDEBUG;
-    return 0 if $dryrun;
-
-    my $ret = system($cmd);
-    if ($ret){
-        info "Return code is $ret", LOGDEBUG;
-    }
-
-    return $ret;
-}
-
-my %suites = (
+# Customized
+my $rpmRepo = "http://mirror.azure.cn/zabbix/zabbix/2.2/rhel/7/x86_64/zabbix-release-2.2-1.el7.noarch.rpm";
+my %packageSuites = (
     "zabbix-agent"      => ['zabbix-agent'],
     "zabbix-server"     => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql', 'mysql-client'],
     "zabbix-server\@centos7"    => ['zabbix-server-mysql', 'zabbix-web-mysql', 'mariadb'],
@@ -454,148 +403,270 @@ my %suites = (
     "selinux-util"      => ['policycoreutils-python']
 );
 
+our @EXPORT        = qw(
+mlog runFlows
+installFile installPackageSuite runCmd enableService
+);
+
+our $retryCount     = 5;
+our $retryWait      = 30;
+our $logPrefix      = "";
+
+my $verbosity       = LOGINFO ;
+my $dryrun          = 1       ;
+my %commonConfig              ;
+my %specialConfigs            ;
+
+sub parseOpt
+{
+  # Parse options.
+  Getopt::Long::Configure qw(gnu_getopt);
+  my $optVerbose;
+  my $optQuiet;
+  my $optDryrun;
+  my %optConfig;
+
+  GetOptions(
+    'verbose|v'     =>  \$optVerbose,
+    'quiet|q'       =>  \$optQuiet,
+    'dryrun|n'      =>  \$optDryrun,
+    'config|c=s'    =>  \%optConfig,
+  ) || exit(1);
+  $verbosity  = $optVerbose ? LOGDEBUG : ($optQuiet ? LOGERR : LOGINFO );
+  $dryrun   = $optDryrun;
+
+  foreach my $key (keys %optConfig){
+    if ($key=~/(.*?)\.(.*)/){
+      if(!$specialConfigs{$1}){
+        $specialConfigs{$1} = {};
+      }
+
+      $specialConfigs{$1}->{$2} = $optConfig{$key};
+    } else {
+      $commonConfig{$key} = $optConfig{$key};
+    }
+  }
+}
+
+sub mlog
+{
+  my $msg     = shift;
+  my $level   = shift || LOGINFO;
+
+  return if ($verbosity < $level);
+  say "$logPrefix$msg";
+  0;
+}
+
+sub runFlows
+{
+  my $flowRef   = shift;
+  &parseOpt;
+  my @flownames = @ARGV;
+
+  pod2usage(-1) unless @flownames;
+
+  foreach my $flowname (@flownames){
+    unless($flowRef->{$flowname}){
+      mlog("Flow '$flowname' not found.", LOGERR);
+      my $jo = join(',', keys %$flowRef);
+      mlog("Supported flows: $jo.");
+      exit(-1);
+    }
+  }
+
+  foreach my $flowname (@flownames){
+    mlog("Begin running '$flowname'");
+    my $flowConfig = { %commonConfig };
+    if(my $so = $specialConfigs{$flowname}){
+      foreach my $key (keys %{$so}){
+        $flowConfig->{$key} = $so->{$key};
+      }
+    }
+
+    my @stepCol = ();
+    &{$flowRef->{$flowname}}(sub{
+      my $name        = shift;
+      my $sub         = shift;
+
+      if($name){
+        push @stepCol, {
+          name    => $name,
+          run     => $sub,
+        };
+      } else {
+        @stepCol = ();
+      }
+    }, $flowConfig);
+    runSteps(\@stepCol);
+  }
+}
+
+sub runSteps
+{
+  my $steps   = shift;
+  my $len     = @$steps;
+  my $index   = 0;
+  foreach my $step (@$steps){
+    ++$index;
+    mlog "($index/$len) $step->{name}";
+    my $run = $step->{run};
+    my $ret = &$run;
+    my $retry = $retryCount;
+    while ($ret && $retry){
+      mlog "failed with code: $ret, $retry retries remaining. Sleep for $retryWait seconds...";
+      sleep($retryWait);
+      --$retry;
+      $ret = &$run;
+    }
+
+    if ($ret){
+      mlog "failed with code: $ret";
+      exit(2);
+    }
+  }
+}
+
+sub installFile
+{
+  my $path        = shift;
+  my $content     = shift;
+  my $FL;
+
+  return 0 if $dryrun;
+
+  open($FL, '>', $path);
+  print $FL $content;
+  close $FL;
+  return 0;
+}
+
+sub runCmd
+{
+  my $cmd = shift;
+  if ($verbosity < LOGINFO) { $cmd .= " >/dev/null"; }
+
+  mlog "Run command:\n$cmd", LOGDEBUG;
+  return 0 if $dryrun;
+
+  my $ret = system($cmd);
+  if ($ret){
+    mlog "Return code is $ret", LOGDEBUG;
+  }
+
+  return $ret;
+}
+
 sub installPackageSuite
 {
-    my $packageSuite    = shift;
-    my $packageManager  = getPackageManager();
-    return 1 unless $packageManager;
+  my $suiteName       = shift;
+  my $packageManager  = getPackageManager();
+  return 1 unless $packageManager;
 
-    my $packageInstall  = $$packageManager{install};
-
-    my $packagesRef;
-    if($$packageManager{distro}){
-       my $psfull = "$packageSuite\@".$$packageManager{distro};
-       if(exists $suites{$psfull}){
-           $packagesRef = $suites{$psfull}
-       }
+  my $packagesRef;
+  if($packageManager->{distro}){
+    my $psfull = "$suiteName\@".$packageManager->{distro};
+    if(exists $packageSuites{$psfull}){
+      $packagesRef = $packageSuites{$psfull}
     }
+  }
 
-    if (!$packagesRef){
-        unless(exists $suites{$packageSuite}){
-            info("Package suite $packageSuite not supported.");
-            exit(4);
-        } else {
-            $packagesRef = $suites{$packageSuite};
-        }
+  if (!$packagesRef){
+    unless(exists $packageSuites{$suiteName}){
+      mlog("Package suite $suiteName not supported.");
+      exit(3);
+    } else {
+      $packagesRef = $packageSuites{$suiteName};
     }
+  }
 
-    return 0 unless @$packagesRef;
+  return 0 unless @$packagesRef;
 
-    my $packageLine = join(" ", @$packagesRef);
-    my $cmd = "$packageInstall $packageLine";
-    info "Begin install packages:$packageLine", LOGDEBUG;
-    my $ret = runCmd($cmd);
+  my $packageLine = join(" ", @$packagesRef);
+  my $packageVerify = $packageManager->{verify};
+  if($packageVerify){
+    if(runCmd("$packageVerify $packageLine") == 0){
+      mlog("Already installed.");
+      return 0;
+    }
+  }
 
+  my $packageInstall = $packageManager->{install};
+  my $cmd = "$packageInstall $packageLine";
+  mlog "Begin install packages:$packageLine", LOGDEBUG;
+  my $ret = runCmd($cmd);
+
+  if (!$ret && $packageVerify){
+    $ret = runCmd("$packageVerify $packageLine");
+  }
+
+  if (!$ret){
+    mlog("Install succeed.", LOGDEBUG);
+  }else{
+    mlog("Install failed. Try update.", LOGDEBUG);
+    my $packageUpdate = $$packageManager{refresh};
+    runCmd($packageUpdate);
+    $ret = runCmd($cmd);
     if (!$ret){
-        my $verify = $$packageManager{verify};
-        if($verify){
-            $ret = runCmd("$verify $packageLine");
-        }
-    }
-
-    if (!$ret){
-        info("Install succeed.", LOGDEBUG);
+      mlog("Install succeed.", LOGDEBUG);
     }else{
-        info("Install failed. Try update.", LOGDEBUG);
-        my $packageUpdate = $$packageManager{refresh};
-        runCmd($packageUpdate);
-        $ret = runCmd($cmd);
-        if (!$ret){
-            info("Install succeed.", LOGDEBUG);
-        }else{
-            info("Install failed.", LOGDEBUG);
-        }
+      mlog("Install failed.", LOGDEBUG);
     }
+  }
 
-    return $ret;
+  return $ret;
 }
 
 # Add verification for yum since it does not fail on missing package.
 sub getPackageManager()
 {
-    my %pm  = (
-        aptitude    => {
-            install => "DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install",
-            refresh => "apt-get update"
-        },
-        yum         => {
-            distro  => "centos7",
-            install => "yum -y install",
-            verify  => "rpm -q",
-            refresh => "rpm -q zabbix-release || rpm -ivh $rpmRepo && sed -i s/repo\.zabbix\.com/mirror.azure.cn\\\\/zabbix/ /etc/yum.repos.d/zabbix.repo"
-        }
-    );
-
-    return $pm{aptitude}    unless runCmd('which apt-get 2> /dev/null');
-    return $pm{yum}         unless runCmd('which yum 2> /dev/null');
-
-    info("Package manager not supported.", LOGERR);
-    exit(3);
-}
-
-sub regSteps
-{
-    my $steps       = shift;
-    my $name        = shift;
-    my $sub         = shift;
-    push @$steps, {
-        name    => $name,
-        run     => $sub,
-    };
-}
-
-sub runSteps
-{
-    my $steps   = shift;
-    my $len     = @$steps;
-    my $index   = 0;
-    foreach my $step (@$steps){
-        ++$index;
-        info "($index/$len) $$step{name}";
-        my $run = $$step{run};
-        my $ret = &$run;
-        my $retry = $defaultRetry;
-        while ($ret && $retry){
-            info "failed with code: $ret, $retry retries remaining. Sleep for $defaultSleep seconds...";
-            sleep($defaultSleep);
-            --$retry;
-            $ret = &$run;
-        }
-
-        if ($ret){
-            info "failed with code: $ret";
-            exit(2);
-        }
+  my %pm  = (
+    aptitude    => {
+      install => "DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install",
+      refresh => "apt-get update"
+    },
+    yum         => {
+      distro  => "centos7",
+      install => "yum -y install",
+      verify  => "rpm -q",
+      refresh => "yum -y install epel-release; rpm -q zabbix-release || rpm -ivh $rpmRepo && sed -i s/repo\.zabbix\.com/mirror.azure.cn\\\\/zabbix/ /etc/yum.repos.d/zabbix.repo"
     }
+  );
+
+  return $pm{aptitude}    unless runCmd('which apt-get 2> /dev/null');
+  return $pm{yum}         unless runCmd('which yum 2> /dev/null');
+
+  mlog("Package manager not supported.", LOGERR);
+  exit(4);
 }
 
 sub enableService
 {
-    my $serviceName     = shift;
-    my $serviceManager  = getServiceManager();
-    return 1 unless $serviceManager;
-    my $cmd = sprintf $$serviceManager{enable}, $serviceName;
-    my $ret = runCmd($cmd);
+  my $serviceName     = shift;
+  my $serviceManager  = getServiceManager();
+  return 1 unless $serviceManager;
+  my $cmd = sprintf $$serviceManager{enable}, $serviceName;
+  my $ret = runCmd($cmd);
 
-    return $ret;
+  return $ret;
 }
 
 sub getServiceManager
 {
-     my %pm  = (
-        systemctl    => {
-            enable => "systemctl enable %s",
-        },
-        upstart      => {
-            enable => "echo %s",
-        }
-    );
+  my %pm  = (
+    systemctl    => {
+      enable => "systemctl enable %s",
+    },
+    upstart      => {
+      enable => "echo %s",
+    }
+  );
 
-    return $pm{systemctl}       unless runCmd('which systemctl 2> /dev/null');
-    return $pm{upstart}         unless runCmd('which status 2> /dev/null');
+  return $pm{systemctl}       unless runCmd('which systemctl 2> /dev/null');
+  return $pm{upstart}         unless runCmd('which status 2> /dev/null');
 
-    info("Service manager not supported.", LOGERR);
-    exit(3);
+  mlog("Service manager not supported.", LOGERR);
+  exit(5);
 }
 
 1;
