@@ -364,9 +364,10 @@ use 5.010;
 use strict;
 use warnings;
 use Exporter qw(import);
+use File::Temp qw(tempfile);
 use Getopt::Long;
 use Pod::Usage;
-our $VERSION = '0.2.7';
+our $VERSION = '0.2.8';
 
 use constant {
   LOGERR   => 1,
@@ -380,6 +381,50 @@ our @EXPORT = qw(
     runCmd enableService restartService getDistro installFile
 );
 
+my %serviceManagers = (
+  systemctl => { 
+    enable  => 'systemctl enable %s', 
+    restart => 'systemctl restart %s', 
+  },
+  upstart   => { 
+    enable  => 'echo %s',
+    restart => 'service %s restart',
+  }
+);
+
+my %serviceManagerMapping = (
+  'arch'        => 'systemctl',
+  'centos7'     => 'systemctl',
+  'ubuntu14.04' => 'upstart',
+  'ubuntu16.04' => 'systemctl',
+);
+
+my %packageManagers = (
+  aptitude => {
+    install =>
+        'DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install',
+    refresh => 'apt-get update',
+    verify  => '[ $(dpkg-query -l %1$s |grep ^ii |wc -l) -eq %2$s ]',
+  },
+  yum => {
+    install => 'yum -y -q install',
+    verify  => 'rpm -q --quiet %1$s',
+    refresh => 'yum -y -q install epel-release'
+  },
+  pacman => {
+    install => 'pacman -Sq --noconfirm',
+    refresh => 'pacman -Sy',
+    verify  => 'pacman -Qq %1$s',
+  }
+);
+
+my %packageManagerMapping = (
+  'arch'        => 'pacman',
+  'centos7'     => 'yum',
+  'ubuntu14.04' => 'aptitude',
+  'ubuntu16.04' => 'aptitude',
+);
+
 our $retryCount = 5;
 our $retryWait  = 3;
 
@@ -390,7 +435,6 @@ my %flows;
 my %commonConfig;
 my %specialConfigs;
 my $packageSuites = {};
-my $serviceManager;
 
 sub parseOpt {
   Getopt::Long::Configure qw(gnu_getopt);
@@ -406,7 +450,7 @@ sub parseOpt {
     'quiet|q'    => \$optQuiet,
     'dryrun|n'   => \$optDryrun,
     'config|c=s' => \%optConfig,
-  ) || exit(1);
+  ) || _exit(1);
   pod2usage(-1) if $optHelp;
   $verbosity = $optVerbose ? LOGDEBUG : ( $optQuiet ? LOGERR : LOGINFO );
   $dryrun = $optDryrun;
@@ -423,7 +467,7 @@ sub parseOpt {
 
 sub mlog {
   my $msg = shift;
-  my $level = shift || LOGINFO;
+  my $level = shift // LOGINFO;
   say $logPrefix.$msg if ( $verbosity >= $level );
   return $level == LOGERR ? 1 : 0;
 }
@@ -433,44 +477,24 @@ sub regFlows {
 }
 
 sub runFlows {
+  _exit(2, 'No registered flows found.') unless (%flows);
   &parseOpt;
-
-  $serviceManager = getServiceManager();
   my @flownames = @ARGV;
-
-  unless (@flownames) {
-    if (%flows) {
-      my $jo = join( ',', sort keys %flows );
-      mlog("Supported flows: $jo");
-    }
-    else {
-      mlog("No registered flows found.");
-    }
-
-    exit(6);
-  }
+  my @supporedFlows = sort keys %flows;
+  _exit(2, 'Supported flows: '. join( ',', @supporedFlows )) unless (@flownames);
 
   my @matchedNames;
-  my @supporedFlows = ( keys %flows );
-
   foreach my $flowname (@flownames) {
     unless ( $flows{$flowname} ) {
       my @matched = grep {/^$flowname/i} @supporedFlows;
       my $matchedLen = @matched;
+      _exit( 2, ( $matchedLen == 0 )
+              ? "No flows match name '$flowname' found."
+              : "Multiple flows match name '$flowname' found: "
+                . join( ',', sort @matched ) . '.')
+          if ( $matchedLen != 1 );
 
-      if ( $matchedLen == 1 ) {
-        $flowname = $matched[0];
-      }
-      else {
-        my $msg
-            = ( $matchedLen == 0 )
-            ? "Flow '$flowname' not found."
-            : "Multiple flows match '$flowname' found:"
-            . join( ',', sort @matched ) . '.';
-        mlog( $msg, LOGERR );
-
-        exit(7);
-      }
+      $flowname = $matched[0];
     }
 
     push @matchedNames, $flowname;
@@ -496,11 +520,7 @@ sub runFlows {
       $flowConfig
     );
 
-    if ($ret) {
-      mlog "failed with code: $ret";
-      exit(2);
-    }
-
+    _exit(3, "Flow failed with code: $ret") if ($ret);
     runSteps( \@stepCol );
     mlog("End flow");
   }
@@ -522,19 +542,13 @@ sub runSteps {
       --$retry;
       $ret = &$run;
     }
-
-    if ($ret) {
-      mlog "failed with code: $ret";
-      exit(2);
-    }
+    _exit(3, "Step failed with code: $ret") if ($ret);
   }
 }
 
 sub installFile {
-  my $path    = shift;
-  my $content = shift;
   return 0 if $dryrun;
-
+  my ($path, $content) = @_;
   open( my $FL, '>', $path ) or return mlog( "Error writing to $path: $!.", LOGERR );
   print $FL $content;
   close $FL;
@@ -542,17 +556,18 @@ sub installFile {
 }
 
 sub runCmd {
-  my $cmd  = shift;
-  mlog "Run command:\n$cmd", LOGDEBUG;
+  my $cmd = shift;
+  mlog "Command Line: $cmd", LOGDEBUG;
   return 0 if $dryrun;
   $cmd .= " >/dev/null" if ( $verbosity < LOGINFO );
   my $rcmd = ($cmd =~ /["']/) ? 'bash '._writeTmpFile([$cmd, "\n"]) : $cmd;
   my $ret = system($rcmd);
   $ret = $ret >> 8 if ($ret > 0);
-  mlog("Return code is $ret", LOGDEBUG);
+  mlog("Command Return: $ret", LOGDEBUG);
   return $ret;
 }
 
+# Package management
 sub regPackageSuite {
   my $suites    = shift;
   for my $suiteName (keys %$suites){
@@ -561,17 +576,13 @@ sub regPackageSuite {
 }
 
 sub installPackageSuite {
-  my $suiteName      = shift;
-  my $packageManager = getPackageManager();
+  state $packageManager = _getPackageManager();
   return 1 unless $packageManager;
+  my $suiteName      = shift;
 
-  my $packagesRef;
-  unless ( exists $packageSuites->{$suiteName} ) {
-    mlog("Package suite $suiteName not supported.");
-    exit(3);
-  }
+  my $packagesRef = $packageSuites->{$suiteName};
+  _exit(4, "Package suite $suiteName not supported.") unless ( $packagesRef );
 
-  $packagesRef = $packageSuites->{$suiteName};
   if (ref $packagesRef eq 'HASH') {
     my $distro = getDistro();
     my $found = [];
@@ -587,8 +598,12 @@ sub installPackageSuite {
   return 0 unless @$packagesRef;
   my $packageLine = join( " ", @$packagesRef );
   my $packageVerify = $packageManager->{verify};
+  my $packageVerifyCmd;
+
   if ($packageVerify) {
-    if ( runCmd("$packageVerify $packageLine > /dev/null 2>&1") == 0 ) {
+    my $packageVerifyCmd = sprintf($packageVerify, $packageLine, scalar @$packagesRef)
+                         . ' >/dev/null 2>&1';
+    if ( runCmd($packageVerifyCmd) == 0 ) {
       mlog("Already installed.", LOGDEBUG);
       return 0;
     }
@@ -598,7 +613,7 @@ sub installPackageSuite {
   my $cmd            = "$packageInstall $packageLine";
   mlog "Begin install packages:$packageLine", LOGDEBUG;
   my $ret = runCmd( $cmd );
-  $ret = runCmd("$packageVerify $packageLine") if ( !$ret && $packageVerify );
+  $ret = runCmd($packageVerifyCmd) if ( !$ret && $packageVerifyCmd );
   if ( !$ret ) { mlog( "Install succeed.", LOGDEBUG ); }
   else {
     mlog( "Install failed. Try update.", LOGDEBUG );
@@ -612,44 +627,18 @@ sub installPackageSuite {
   return $ret;
 }
 
-sub _hasCmd {
-  my $cmd = shift;
-  return ( runCmd("which $cmd > /dev/null 2>&1") == 0 );
+sub _getPackageManager() {
+  my $name = $packageManagerMapping{&getDistro};
+  _exit(4, "Package manager not supported.") unless ( $name && $packageManagers{$name} );
+  return $packageManagers{$name};
 }
 
-# Add verification for yum since it does not fail on missing package.
-sub getPackageManager() {
-  my %pm = (
-    aptitude => {
-      install =>
-          "DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install",
-      refresh => "apt-get update",
-      # verify  => 'dpkg -l',          # need check count
-    },
-    yum => {
-      install => "yum -y -q install",
-      verify  => "rpm -q --quiet",
-      refresh => "yum -y -q install epel-release"
-    },
-    pacman => {
-      install => 'pacman -S',
-      refresh => 'pacman -Sy',
-      verify  => 'pacman -Qq',
-    }
-  );
-
-  return $pm{aptitude} if _hasCmd('apt-get');
-  return $pm{yum}      if _hasCmd('yum');
-  return $pm{pacman}   if _hasCmd('pacman');
-
-  mlog( "Package manager not supported.", LOGERR );
-  exit(4);
-}
-
+# Service management
 sub enableService { return _runServiceManager(shift, 'enable'); }
 sub restartService { return _runServiceManager(shift, 'restart'); }
 
 sub _runServiceManager {
+  state $serviceManager = _getServiceManager();
   return 1 unless $serviceManager;
   my $serviceName = shift;
   my $cmd         = shift;
@@ -657,48 +646,47 @@ sub _runServiceManager {
   return runCmd(sprintf($action, $serviceName));
 }
 
-sub getServiceManager {
-  my %pm = (
-    systemctl => { 
-      enable  => 'systemctl enable %1$s', 
-      restart => 'systemctl restart %1$s', 
-    },
-    upstart   => { 
-      enable  => 'echo %s',
-      restart => 'service %s restart',
-    }
-  );
-
-  return $pm{systemctl} if _hasCmd('systemctl');
-  return $pm{upstart}   if _hasCmd('status 2> /dev/null');
-  mlog( "Service manager not supported.", LOGERR );
-  exit(5);
+sub _getServiceManager {
+  my $name = $serviceManagerMapping{&getDistro};
+  _exit(4, "Service manager not supported.") unless ( $name && $serviceManagers{$name} );
+  return $serviceManagers{$name};
 }
 
 sub getDistro {
-  my $id         = '';
-  my $version_id = '';
-  if ( open( my $fl, '<', '/etc/os-release' ) ) {
-    while (<$fl>) {
-      if    (/^ID="?(.*?)"?$/)         { $id         = $1; }
-      elsif (/^VERSION_ID="?(.*?)"?$/) { $version_id = $1; }
-    }
-
-    close $fl;
+  state $distro;
+  return $distro if $distro;
+  my $id          = 'UNKNOWN';
+  my $version_id  = '';
+  my $lines = _readFile('/etc/os-release');
+  for (@$lines) {
+    if    (/^ID="?(.*?)"?$/)         { $id         = $1; }
+    elsif (/^VERSION_ID="?(.*?)"?$/) { $version_id = $1; }
   }
+  return ($distro = $id . $version_id);
+}
 
-  return $id . $version_id;
+# File util
+sub _readFile {
+  my $targetFile = shift;
+  my $targetFileHandle;
+  open( $targetFileHandle, '<', $targetFile ) or _exit(5, "Could not open file '$targetFile'.");
+  my @lines = <$targetFileHandle>;
+  close($targetFileHandle);
+  return \@lines;
 }
 
 sub _writeTmpFile {
   my $lines = shift;
-  use File::Temp qw/ tempfile /;
-  my $tmpFileHandle;
-  my $tmpFilePath;
-  ( $tmpFileHandle, $tmpFilePath ) = tempfile( UNLINK => 1 );
+  my ( $tmpFileHandle, $tmpFilePath ) = tempfile( UNLINK => 1 );
   print $tmpFileHandle @$lines;
   close($tmpFileHandle);
   return $tmpFilePath;
+}
+
+sub _exit {
+  my ( $code, $msg ) = @_;
+  mlog( $msg, LOGERR )if ($msg);
+  exit($code);
 }
 
 1;
