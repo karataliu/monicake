@@ -8,13 +8,11 @@ use Pod::Usage;
 import flow;
 our $VERSION    = 0.1.9;
 
-$flow::retryWait = 30;
-
 regPackageSuite({
     "zabbix-agent"      => ['zabbix-agent'],
     "zabbix-server"     => {
         'ubuntu' => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql', 'mysql-client'],
-        'centos' => ['zabbix-server-mysql-2.2.7', 'zabbix-web-mysql-2.2.7', 'mariadb'],
+        'centos' => ['zabbix-server-mysql', 'zabbix-web-mysql', 'mariadb'],
     },
     "mysql-server"      => {
         'ubuntu' => ['mysql-server'],
@@ -283,28 +281,21 @@ EOM
 
             my $importRequest  = 
             {
-                "jsonrpc", "2.0",
-                "method", "configuration.import",
-                "params", {
-                    "format", "xml",
-                    "rules", {
-                        "templates", {
-                            "createMissing", 1
-                        },
-                        "items", {
-                            "createMissing", 1
-                        },
-                        "triggers",{
-                            "createMissing", 1
-                        },
-                        "templateLinkage",{
-                            "createMissing", 1
-                        },
+                'jsonrpc', '2.0',
+                'method', 'configuration.import',
+                'params', {
+                    'format', 'xml',
+                    'rules', {
+                        'templates',      { 'createMissing', 1 },
+                        'applications',   { 'createMissing', 1 },
+                        'items',          { 'createMissing', 1 },
+                        'triggers',       { 'createMissing', 1 },
+                        'templateLinkage',{ 'createMissing', 1 },
                     },
-                    "source", "$xml"
+                    'source', $xml
                 },
-                "auth", "$token",
-                "id", 1
+                'auth', $token,
+                'id', 1
             };
 
             ($ret, $token) = callrpc($importRequest);
@@ -393,10 +384,8 @@ my %serviceManagers = (
 );
 
 my %serviceManagerMapping = (
-  'arch'        => 'systemctl',
   'centos7'     => 'systemctl',
   'ubuntu14.04' => 'upstart',
-  'ubuntu16.04' => 'systemctl',
 );
 
 my %packageManagers = (
@@ -411,22 +400,15 @@ my %packageManagers = (
     verify  => 'rpm -q --quiet %1$s',
     refresh => 'yum -y -q install epel-release'
   },
-  pacman => {
-    install => 'pacman -Sq --noconfirm',
-    refresh => 'pacman -Sy',
-    verify  => 'pacman -Qq %1$s',
-  }
 );
 
 my %packageManagerMapping = (
-  'arch'        => 'pacman',
   'centos7'     => 'yum',
   'ubuntu14.04' => 'aptitude',
-  'ubuntu16.04' => 'aptitude',
 );
 
 our $retryCount = 5;
-our $retryWait  = 3;
+our $retryWait  = 30;
 
 my $logPrefix = "";
 my $verbosity = LOGINFO;
@@ -595,7 +577,7 @@ sub installPackageSuite {
     $packagesRef = $found;
   }
 
-  return 0 unless @$packagesRef;
+  return 1 unless @$packagesRef;
   my $packageLine = join( " ", @$packagesRef );
   my $packageVerify = $packageManager->{verify};
   my $packageVerifyCmd;
