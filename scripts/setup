@@ -8,24 +8,6 @@ use Pod::Usage;
 import flow;
 our $VERSION    = 0.1.9;
 
-regPackageSuite({
-    "zabbix-agent"      => ['zabbix-agent'],
-    "zabbix-server"     => {
-        'ubuntu' => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql', 'mysql-client'],
-        'centos' => ['zabbix-server-mysql', 'zabbix-web-mysql', 'mariadb'],
-    },
-    "mysql-server"      => {
-        'ubuntu' => ['mysql-server'],
-        'centos' => ['mariadb-server'],
-    },
-    "perl-jsonrpc"      => {
-        'ubuntu' => ['libjson-rpc-perl'],
-        'centos' => ['perl-JSON-RPC'],
-    },
-    "sendemail"         => ['sendemail'],
-    "selinux-util"      => ['policycoreutils-python']
-});
-
 sub centosPrepare {
   my $rpmRepo = "http://mirror.kaiyuanshe.org/zabbix/zabbix/2.2/rhel/7/x86_64/zabbix-release-2.2-1.el7.noarch.rpm";
   runCmd("rpm -q --quiet zabbix-release || rpm -i --quiet $rpmRepo && sed -i s/repo\.zabbix\.com/mirror.kaiyuanshe.org\\\\/zabbix/ /etc/yum.repos.d/zabbix.repo");
@@ -63,7 +45,7 @@ EOM
         $regStep->("Prepare on CentOS", \&centosPrepare) if (getDistro() =~ /centos/);
 
         $regStep->("Install Zabbix Agent package.", sub {
-            installPackageSuite("zabbix-agent");
+            installPackageSuite(['zabbix-agent']);
         });
         $regStep->("Configure zabbix agent.", sub {
             installFile('/etc/zabbix/zabbix_agentd.conf', $confAgent)
@@ -106,7 +88,10 @@ EOM
         $regStep->("Prepare on CentOS", \&centosPrepare) if (getDistro() =~ /centos/);
 
         $regStep->("Install Zabbix Server package.", sub{
-            installPackageSuite("zabbix-server");
+            installPackageSuite({
+                'ubuntu' => ['zabbix-server-mysql', 'zabbix-frontend-php', 'php5-mysql', 'mysql-client'],
+                'centos7' => ['zabbix-server-mysql', 'zabbix-web-mysql', 'mariadb'],
+            });
         });
         $regStep->("Configure apache.", sub{
             my $confServerApachePhp = << 'EOM';
@@ -137,7 +122,10 @@ EOM
 create database if not exists $zabbixDb character set utf8 collate utf8_bin;
 grant all privileges on $zabbixDb.* to $zabbixUser\@localhost identified by "$zabbixPassword";
 EOM
-            installPackageSuite('mysql-server');
+            installPackageSuite({
+                'ubuntu' => ['mysql-server'],
+                'centos7' => ['mariadb-server'],
+            });
             restartService('mariadb');
             enableService("mariadb");
             runCmd("mysql -e '$dbSetup'");
@@ -203,8 +191,7 @@ EOM
 
         if (-x '/usr/sbin/semodule'){
           $regStep->("Configure selinux.", sub{
-            installPackageSuite("selinux-util");
-
+            installPackageSuite(['policycoreutils-python']);
 
             my $log = << "EOM";
 type=AVC msg=audit(1477461524.352:480): avc:  denied  { name_connect } for  pid=1852 comm="/usr/sbin/httpd" dest=10051 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:zabbix_port_t:s0 tclass=tcp_socket
@@ -229,7 +216,10 @@ EOM
         });
 
         $regStep->("Configure azure specific tempalte.", sub {
-            installPackageSuite("perl-jsonrpc");    # for regTemplate
+            installPackageSuite({
+                'ubuntu' => ['libjson-rpc-perl'],
+                'centos7' => ['perl-JSON-RPC'],
+            });    # for regTemplate
             require JSON::RPC::Legacy::Client;
             our $client      = new JSON::RPC::Legacy::Client;
             my $endpoint    = 'http://127.0.0.1/zab/';
@@ -333,7 +323,7 @@ INSERT INTO \\`media\\` VALUES (1,1,4,'$smtpTo',0,63,'1-7,00:00-24:00');
 UPDATE \\`actions\\` SET status=0 WHERE actionid=3;
 EOM
 
-            installPackageSuite('sendemail')
+            installPackageSuite(['sendemail'])
             && runCmd("curl http://caspian.dotconf.net/menu/Software/SendEmail/sendEmail-v1.56.tar.gz| "
               ."tar zxO sendEmail-v1.56/sendEmail > /usr/local/bin/sendEmail && chmod +x /usr/local/bin/sendEmail");
             runCmd("mkdir -p $alertScriptsPath");
@@ -351,14 +341,14 @@ EOM
 BEGIN{
 # Module flow, provides flow running logic and some system utils.
 package flow;
-use 5.010;
-use strict;
+use 5.012;
 use warnings;
 use Exporter qw(import);
+use File::Copy qw(copy);
 use File::Temp qw(tempfile);
-use Getopt::Long;
-use Pod::Usage;
-our $VERSION = '0.2.8';
+use Getopt::Long qw(:config gnu_getopt);
+use Pod::Usage qw(pod2usage);
+our $VERSION = '0.2.9-d294';
 
 use constant {
   LOGERR   => 1,
@@ -368,90 +358,57 @@ use constant {
 
 our @EXPORT = qw(
     mlog regFlows runFlows
-    regPackageSuite installPackageSuite
-    runCmd enableService restartService getDistro installFile
-);
-
-my %serviceManagers = (
-  systemctl => { 
-    enable  => 'systemctl enable %s', 
-    restart => 'systemctl restart %s', 
-  },
-  upstart   => { 
-    enable  => 'echo %s',
-    restart => 'service %s restart',
-  }
-);
-
-my %serviceManagerMapping = (
-  'centos7'     => 'systemctl',
-  'ubuntu14.04' => 'upstart',
-);
-
-my %packageManagers = (
-  aptitude => {
-    install =>
-        'DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install',
-    refresh => 'apt-get update',
-    verify  => '[ $(dpkg-query -l %1$s |grep ^ii |wc -l) -eq %2$s ]',
-  },
-  yum => {
-    install => 'yum -y -q install',
-    verify  => 'rpm -q --quiet %1$s',
-    refresh => 'yum -y -q install epel-release'
-  },
-);
-
-my %packageManagerMapping = (
-  'centos7'     => 'yum',
-  'ubuntu14.04' => 'aptitude',
+    installPackageSuite
+    runCmd enableService restartService stopService
+    getDistro installFile
 );
 
 our $retryCount = 5;
-our $retryWait  = 30;
+our $retryWait  = 3;
 
 my $logPrefix = "";
 my $verbosity = LOGINFO;
-my $dryrun    = 1;
-my %flows;
-my %commonConfig;
-my %specialConfigs;
-my $packageSuites = {};
+my ( $dryrun, %flows, $serviceManager, $packageManager );
+my %packageSuites;
 
-sub parseOpt {
-  Getopt::Long::Configure qw(gnu_getopt);
-  my $optHelp;
-  my $optVerbose;
-  my $optQuiet;
-  my $optDryrun;
-  my %optConfig;
+{
+  my $svcSystemctl = {
+    enable  => 'systemctl enable %s',
+    restart => 'systemctl restart %s',
+    stop => 'systemctl stop %s',
+  };
+  my $svcUpstart = {
+    enable  => 'echo %s',
+    restart => 'service %s restart',
+  };
+  my $pacApt = {
+    install => 'DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install',
+    refresh => 'apt-get update',
+    verify  => '[ $(dpkg-query -l %1$s |grep ^ii |wc -l) -eq %2$s ]',
+  };
+  my $pacPacman = {
+      install => 'pacman -Sq --noconfirm',
+      refresh => 'pacman -Sy',
+      verify  => 'pacman -Qq %1$s',
+  };
+  my $pacYum = {
+      install => 'yum -y -q install',
+      verify  => 'rpm -q --quiet %1$s',
+      refresh => 'yum -y -q install epel-release'
+  };
 
-  GetOptions(
-    'help|h'     => \$optHelp,
-    'verbose|v'  => \$optVerbose,
-    'quiet|q'    => \$optQuiet,
-    'dryrun|n'   => \$optDryrun,
-    'config|c=s' => \%optConfig,
-  ) || _exit(1);
-  pod2usage(-1) if $optHelp;
-  $verbosity = $optVerbose ? LOGDEBUG : ( $optQuiet ? LOGERR : LOGINFO );
-  $dryrun = $optDryrun;
-  foreach my $key ( keys %optConfig ) {
-    if ( $key =~ /(.*?)\.(.*)/ ) {
-      $specialConfigs{$1} = {} if ( !$specialConfigs{$1} );
-      $specialConfigs{$1}->{$2} = $optConfig{$key};
-    }
-    else {
-      $commonConfig{$key} = $optConfig{$key};
-    }
-  }
+  ($serviceManager, $packageManager) = getConfig({
+    'arch'        => [$svcSystemctl , $pacPacman],
+    'centos7'     => [$svcSystemctl , $pacYum],
+    'ubuntu14.04' => [$svcUpstart   , $pacApt],
+    'ubuntu16.04' => [$svcSystemctl , $pacApt],
+  });
 }
 
 sub mlog {
-  my $msg = shift;
-  my $level = shift // LOGINFO;
-  say $logPrefix.$msg if ( $verbosity >= $level );
-  return $level == LOGERR ? 1 : 0;
+  my ($msg, $level) = @_;
+  say $logPrefix. $msg if $verbosity >= ($level // LOGINFO);
+  return 0;
 }
 
 sub regFlows {
@@ -459,53 +416,51 @@ sub regFlows {
 }
 
 sub runFlows {
-  _exit(2, 'No registered flows found.') unless (%flows);
-  &parseOpt;
-  my @flownames = @ARGV;
-  my @supporedFlows = sort keys %flows;
-  _exit(2, 'Supported flows: '. join( ',', @supporedFlows )) unless (@flownames);
+  _exit( 2, 'No registered flows found.' ) unless (%flows);
+  my %parameter;
+  my %optConfig;
+  GetOptions(
+    'help|h'     => sub { pod2usage(-1); },
+    'dryrun|n'   => sub { $dryrun = 1; },
+    'verbose|v'  => sub { $verbosity = LOGDEBUG; },
+    'quiet|q'    => sub { $verbosity = LOGERR; },
+    'config|c=s' => \%optConfig,
+  ) or _exit(1);
+  my $flowname = shift @ARGV;
+  @parameter{map { (/(.*?)\.(.*)/) ? $2 : $_ } keys %optConfig} = values %optConfig;
 
-  my @matchedNames;
-  foreach my $flowname (@flownames) {
+  {
+    local $" = ', ';
+    my @supportedFlows = sort keys %flows;
+    _exit( 2, "Supported flows: @supportedFlows." ) unless $flowname;
     unless ( $flows{$flowname} ) {
-      my @matched = grep {/^$flowname/i} @supporedFlows;
-      my $matchedLen = @matched;
-      _exit( 2, ( $matchedLen == 0 )
-              ? "No flows match name '$flowname' found."
-              : "Multiple flows match name '$flowname' found: "
-                . join( ',', sort @matched ) . '.')
-          if ( $matchedLen != 1 );
-
+      my @matched = grep {/^$flowname/i} @supportedFlows;
+      _exit( 2,
+        ( @matched == 0 )
+        ? "No flows match name '$flowname' found."
+        : "Multiple flows match name '$flowname' found: @matched.")
+          if ( @matched != 1 );
       $flowname = $matched[0];
     }
-
-    push @matchedNames, $flowname;
   }
 
-  foreach my $flowname (@matchedNames) {
-    $logPrefix = "[$flowname] ";
-    mlog("Begin flow");
-    my $flowConfig = {%commonConfig};
-    if ( my $so = $specialConfigs{$flowname} ) {
-      foreach my $key ( keys %{$so} ) { $flowConfig->{$key} = $so->{$key}; }
-    }
+  $logPrefix = "[$flowname] ";
+  mlog('Begin Flow');
+  my @stepCol = ();
+  my $ret     = &{ $flows{$flowname} }(
+    sub {
+      my $name = shift;
+      my $sub  = shift;
+      if ($name) { push @stepCol, { name => $name, run => $sub, }; }
+      else       { @stepCol = (); }
+      0;
+    },
+    \%parameter
+  );
 
-    my @stepCol = ();
-    my $ret = &{ $flows{$flowname} }(
-      sub {
-        my $name = shift;
-        my $sub  = shift;
-        if ($name) { push @stepCol, { name => $name, run => $sub, }; }
-        else       { @stepCol = (); }
-        0;
-      },
-      $flowConfig
-    );
-
-    _exit(3, "Flow failed with code: $ret") if ($ret);
-    runSteps( \@stepCol );
-    mlog("End flow");
-  }
+  _exit( 3, "Flow failed with code: $ret" ) if ($ret);
+  runSteps( \@stepCol );
+  mlog('End Flow');
 }
 
 sub runSteps {
@@ -524,14 +479,14 @@ sub runSteps {
       --$retry;
       $ret = &$run;
     }
-    _exit(3, "Step failed with code: $ret") if ($ret);
+    _exit( 3, "Step failed with code: $ret" ) if ($ret);
   }
 }
 
 sub installFile {
   return 0 if $dryrun;
-  my ($path, $content) = @_;
-  open( my $FL, '>', $path ) or return mlog( "Error writing to $path: $!.", LOGERR );
+  my ( $path, $content ) = @_;
+  open( my $FL, '>', $path ) or _exit(17, "Error writing to $path: $!.");
   print $FL $content;
   close $FL;
   return 0;
@@ -542,51 +497,29 @@ sub runCmd {
   mlog "Command Line: $cmd", LOGDEBUG;
   return 0 if $dryrun;
   $cmd .= " >/dev/null" if ( $verbosity < LOGINFO );
-  my $rcmd = ($cmd =~ /["']/) ? 'bash '._writeTmpFile([$cmd, "\n"]) : $cmd;
+  my $rcmd = ( $cmd =~ /["']/ ) ? 'bash ' . _writeTmpFile( [ $cmd, "\n" ] ) : $cmd;
   my $ret = system($rcmd);
-  $ret = $ret >> 8 if ($ret > 0);
-  mlog("Command Return: $ret", LOGDEBUG);
+  $ret = $ret >> 8 if ( $ret > 0 );
+  mlog( "Command Return: $ret", LOGDEBUG );
   return $ret;
 }
 
-# Package management
-sub regPackageSuite {
-  my $suites    = shift;
-  for my $suiteName (keys %$suites){
-    $packageSuites->{$suiteName} = $suites->{$suiteName};
-  }
-}
-
 sub installPackageSuite {
-  state $packageManager = _getPackageManager();
-  return 1 unless $packageManager;
-  my $suiteName      = shift;
-
-  my $packagesRef = $packageSuites->{$suiteName};
-  _exit(4, "Package suite $suiteName not supported.") unless ( $packagesRef );
-
-  if (ref $packagesRef eq 'HASH') {
-    my $distro = getDistro();
-    my $found = [];
-    for my $name (keys %$packagesRef){
-      if ($distro =~ /$name/){
-        $found = $packagesRef->{$name}; last;
-      }
-    }
-
-    $packagesRef = $found;
-  }
-
-  return 1 unless @$packagesRef;
+  _exit( 4, 'Package manager not supported.' ) unless $packageManager;
+  my $packageConfig = shift;
+  _exit( 4, 'Package suite should be a list or hash.' ) unless ($packageConfig && ref $packageConfig);
+  my $packagesRef = getConfig( (ref $packageConfig eq 'ARRAY') ? {'@'=> $packageConfig} : $packageConfig );
+  _exit( 4, 'Package suite not supported.' ) unless ($packagesRef && ref $packagesRef eq 'ARRAY' && @$packagesRef);
   my $packageLine = join( " ", @$packagesRef );
   my $packageVerify = $packageManager->{verify};
   my $packageVerifyCmd;
 
   if ($packageVerify) {
-    my $packageVerifyCmd = sprintf($packageVerify, $packageLine, scalar @$packagesRef)
-                         . ' >/dev/null 2>&1';
+    my $packageVerifyCmd
+        = sprintf( $packageVerify, $packageLine, scalar @$packagesRef )
+        . ' >/dev/null 2>&1';
     if ( runCmd($packageVerifyCmd) == 0 ) {
-      mlog("Already installed.", LOGDEBUG);
+      mlog( "Already installed.", LOGDEBUG );
       return 0;
     }
   }
@@ -594,7 +527,7 @@ sub installPackageSuite {
   my $packageInstall = $packageManager->{install};
   my $cmd            = "$packageInstall $packageLine";
   mlog "Begin install packages:$packageLine", LOGDEBUG;
-  my $ret = runCmd( $cmd );
+  my $ret = runCmd($cmd);
   $ret = runCmd($packageVerifyCmd) if ( !$ret && $packageVerifyCmd );
   if ( !$ret ) { mlog( "Install succeed.", LOGDEBUG ); }
   else {
@@ -602,59 +535,44 @@ sub installPackageSuite {
     my $packageUpdate = $$packageManager{refresh};
     runCmd($packageUpdate);
     $ret = runCmd($cmd);
-    if ( !$ret ) { mlog( "Install succeed.", LOGDEBUG ); }
-    else         { mlog( "Install failed.", LOGDEBUG );  }
+    if   ( !$ret ) { mlog( "Install succeed.", LOGDEBUG ); }
+    else           { mlog( "Install failed.",  LOGDEBUG ); }
   }
 
   return $ret;
 }
 
-sub _getPackageManager() {
-  my $name = $packageManagerMapping{&getDistro};
-  _exit(4, "Package manager not supported.") unless ( $name && $packageManagers{$name} );
-  return $packageManagers{$name};
-}
-
 # Service management
-sub enableService { return _runServiceManager(shift, 'enable'); }
-sub restartService { return _runServiceManager(shift, 'restart'); }
+sub enableService  { return _runServiceManager( shift, 'enable' ); }
+sub restartService { return _runServiceManager( shift, 'restart' ); }
+sub stopService { return _runServiceManager( shift, 'stop' ); }
 
 sub _runServiceManager {
-  state $serviceManager = _getServiceManager();
-  return 1 unless $serviceManager;
-  my $serviceName = shift;
-  my $cmd         = shift;
-  my $action      = $$serviceManager{$cmd} or return mlog("Serivce operation not supported.", LOGERR);
-  return runCmd(sprintf($action, $serviceName));
-}
-
-sub _getServiceManager {
-  my $name = $serviceManagerMapping{&getDistro};
-  _exit(4, "Service manager not supported.") unless ( $name && $serviceManagers{$name} );
-  return $serviceManagers{$name};
+  _exit( 5, "Service manager not supported." ) unless $serviceManager;
+  my ($serviceName, $cmd) = @_;
+  my $action = $$serviceManager{$cmd} or _exit( 5, "Serivce operation not supported.");
+  return runCmd( sprintf( $action, $serviceName ) );
 }
 
 sub getDistro {
-  state $distro;
-  return $distro if $distro;
-  my $id          = 'UNKNOWN';
-  my $version_id  = '';
-  my $lines = _readFile('/etc/os-release');
-  for (@$lines) {
-    if    (/^ID="?(.*?)"?$/)         { $id         = $1; }
-    elsif (/^VERSION_ID="?(.*?)"?$/) { $version_id = $1; }
-  }
-  return ($distro = $id . $version_id);
+  state $distro = do {
+    if ( $^O eq 'msys' ) { 'windows'; }
+    else {
+      my ( $id, $version_id ) = ( 'UNKNOWN', '' );
+      for ( _readFile('/etc/os-release') ) {
+        if    (/^ID="?(.*?)"?$/)         { $id         = $1; }
+        elsif (/^VERSION_ID="?(.*?)"?$/) { $version_id = $1; }
+      }
+      $id . $version_id;
+    }
+  };
+  return $distro;
 }
 
-# File util
 sub _readFile {
   my $targetFile = shift;
-  my $targetFileHandle;
-  open( $targetFileHandle, '<', $targetFile ) or _exit(5, "Could not open file '$targetFile'.");
-  my @lines = <$targetFileHandle>;
-  close($targetFileHandle);
-  return \@lines;
+  _exit( 17, "Could not open file '$targetFile'." ) unless ( -r $targetFile );
+  return do { local @ARGV = $targetFile; readline(); };
 }
 
 sub _writeTmpFile {
@@ -667,8 +585,15 @@ sub _writeTmpFile {
 
 sub _exit {
   my ( $code, $msg ) = @_;
-  mlog( $msg, LOGERR )if ($msg);
+  mlog( $msg, LOGERR ) if ($msg);
   exit($code);
+}
+
+sub getConfig {
+  my $map = shift;
+  my $key = $map->{&getDistro} // $map->{'@'};
+  return $key unless wantarray;
+  return $key ? @{$key} : ();
 }
 
 1;
